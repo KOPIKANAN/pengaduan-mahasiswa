@@ -33,7 +33,7 @@ export default function LoginPage({ onLogin, goToRegister }) {
         {/* Right Side: Form Content */}
         <div className="md:w-1/2 bg-white flex flex-col justify-center px-8 sm:px-14 py-10 md:py-12">
           <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-8">
-            Selamat Datang di <span className="text-brand-dark">Unjaya Voice</span>
+            Selamat Datang di <span className="text-brand-dark">SiLapor</span>
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
