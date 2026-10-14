@@ -1,4 +1,4 @@
-# Sistem Pengaduan Mahasiswa ("Unjaya Voice")
+# Sistem Pengaduan Mahasiswa ("SiLapor")
 Aplikasi prototipe web interaktif pengaduan sarana dan prasarana kampus.
 
 ## Cara Menjalankan:
