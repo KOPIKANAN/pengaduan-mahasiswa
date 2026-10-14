@@ -1,11 +1,14 @@
 import React from 'react';
 
 export default function UserHome({ user, reports, goToForm }) {
-  // Compute counts dynamically
-  const countMasuk = reports.length;
-  const countDiproses = reports.filter(r => r.status.toLowerCase() === 'diproses').length;
-  const countDitolak = reports.filter(r => r.status.toLowerCase() === 'ditolak').length;
-  const countSelesai = reports.filter(r => r.status.toLowerCase() === 'selesai').length;
+  // Cek apakah user sedang berada dalam mode Pengunjung / Guest
+  const isGuest = !user || user.name === 'Pengunjung';
+
+  // Compute counts dynamically (jika guest, paksa bernilai 0)
+  const countMasuk = isGuest ? 0 : reports.length;
+  const countDiproses = isGuest ? 0 : reports.filter(r => r.status.toLowerCase() === 'diproses').length;
+  const countDitolak = isGuest ? 0 : reports.filter(r => r.status.toLowerCase() === 'ditolak').length;
+  const countSelesai = isGuest ? 0 : reports.filter(r => r.status.toLowerCase() === 'selesai').length;
 
   const padZero = (num) => String(num).padStart(2, '0');
 
@@ -52,13 +55,13 @@ export default function UserHome({ user, reports, goToForm }) {
             <div className="md:w-7/12 text-center md:text-left space-y-5">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
                 Selamat Pagi<br />
-                <span className="text-gray-900">{user?.name || 'Dimas Mahardika'}</span>
+                <span className="text-gray-900">{user?.name || 'Pengunjung'}</span>
               </h1>
 
               <div>
                 <button
                   onClick={goToForm}
-                  className="bg-brand-dark hover:bg-[#0b5953] active:scale-95 text-white font-extrabold text-lg sm:text-xl px-10 py-3.5 rounded-2xl shadow-lg transition-all duration-200"
+                  className="bg-brand-dark hover:bg-[#0b5953] active:scale-95 text-white font-extrabold text-lg sm:text-xl px-10 py-3.5 rounded-2xl shadow-lg transition-all duration-200 cursor-pointer"
                 >
                   Lapor sekarang!
                 </button>
@@ -74,7 +77,7 @@ export default function UserHome({ user, reports, goToForm }) {
                 Laporan Masuk
               </h3>
               <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
-                {padZero(countMasuk || 2)}
+                {padZero(countMasuk)}
               </span>
             </div>
 
@@ -84,7 +87,7 @@ export default function UserHome({ user, reports, goToForm }) {
                 Laporan Diproses
               </h3>
               <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
-                {padZero(countDiproses || 1)}
+                {padZero(countDiproses)}
               </span>
             </div>
 
@@ -94,7 +97,7 @@ export default function UserHome({ user, reports, goToForm }) {
                 Laporan Ditolak
               </h3>
               <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
-                {padZero(countDitolak || 0)}
+                {padZero(countDitolak)}
               </span>
             </div>
 
@@ -104,7 +107,7 @@ export default function UserHome({ user, reports, goToForm }) {
                 Laporan Selesai
               </h3>
               <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
-                {padZero(countSelesai || 1)}
+                {padZero(countSelesai)}
               </span>
             </div>
           </div>

@@ -18,10 +18,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [authView, setAuthView] = useState('login'); // 'login' | 'register'
+  // State tampilan auth: 'landing' | 'login' | 'register'
+  const [authView, setAuthView] = useState('landing'); 
   const [role, setRole] = useState(() => currentUser?.role === 'Admin' ? 'admin' : 'mahasiswa');
   const [currentTab, setCurrentTab] = useState('home');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Untuk Hamburger Menu HP
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [reports, setReports] = useState(() => {
     const saved = localStorage.getItem('pengaduan_reports_data');
@@ -40,6 +41,16 @@ export default function App() {
   const triggerToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
+  };
+
+  // Proteksi Tombol/Aksi: Jika belum login, arahkan langsung ke Halaman Login
+  const handleProtectedAction = (actionCallback) => {
+    if (!currentUser) {
+      setAuthView('login');
+      triggerToast('Silakan masuk/login terlebih dahulu untuk mengakses fitur.', 'info');
+    } else if (actionCallback) {
+      actionCallback();
+    }
   };
 
   const handleLogin = (credentials) => {
@@ -88,7 +99,8 @@ export default function App() {
   const handleConfirmLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('pengaduan_active_session');
-    setAuthView('login');
+    setAuthView('landing');
+    setCurrentTab('home');
     setShowLogoutConfirm(false);
     triggerToast('Anda telah keluar dari aplikasi.', 'info');
   };
@@ -133,6 +145,14 @@ export default function App() {
     triggerToast(`Status tiket berhasil diubah menjadi: ${newStatus}`);
   };
 
+  // Data Pengunjung (Guest) saat belum Login
+  const guestUser = {
+    name: 'Pengunjung',
+    email: 'guest@unjaya.ac.id',
+    role: 'Mahasiswa',
+    avatar: '/images/avatar.png'
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans relative selection:bg-brand-teal selection:text-white">
       {/* Toast Alert */}
@@ -172,24 +192,26 @@ export default function App() {
         </div>
       )}
 
-      {/* TAMPILAN AUTENTIKASI (LOGIN / REGISTER SESUAI FIGMA) */}
-      {!currentUser ? (
-        authView === 'login' ? (
-          <LoginPage
-            onLogin={(email) => handleLogin({ email })}
-            goToRegister={() => setAuthView('register')}
-          />
-        ) : (
-          <RegisterPage
-            onRegister={handleRegister}
-            goToLogin={() => setAuthView('login')}
-          />
-        )
-      ) : (
-        /* TAMPILAN DASHBOARD DENGAN RESPONSIVITAS MOBILE */
+      {/* JIKA BELUM LOGIN DAN MEMILIH KE HALAMAN LOGIN / REGISTER */}
+      {!currentUser && authView === 'login' && (
+        <LoginPage
+          onLogin={(email) => handleLogin({ email })}
+          goToRegister={() => setAuthView('register')}
+        />
+      )}
+
+      {!currentUser && authView === 'register' && (
+        <RegisterPage
+          onRegister={handleRegister}
+          goToLogin={() => setAuthView('login')}
+        />
+      )}
+
+      {/* TAMPILAN DASHBOARD (Dapat diakses jika User Login ATAU Landing Mode 'landing') */}
+      {(currentUser || authView === 'landing') && (
         <div className="flex flex-col md:flex-row flex-1 min-h-screen overflow-hidden">
           
-          {/* Header Khusus Layar HP (Mobile Hamburger) */}
+          {/* Header Mobile */}
           <header className="md:hidden bg-brand-teal text-white px-4 py-3.5 flex items-center justify-between shadow-md z-30">
             <div className="flex items-center space-x-3">
               <button
@@ -204,51 +226,52 @@ export default function App() {
 
             <div className="flex items-center space-x-2">
               <span className="text-xs font-semibold opacity-90 capitalize">
-                {role === 'admin' ? 'Admin' : 'Mahasiswa'}
+                {currentUser ? (role === 'admin' ? 'Admin' : 'Mahasiswa') : 'Pengunjung'}
               </span>
               <img
                 src={currentUser?.avatar || '/images/avatar.png'}
                 alt="Avatar"
-                className="w-7 h-7 rounded-full object-cover border border-white"
+                className="w-7 h-7 rounded-full object-cover border border-white cursor-pointer"
+                onClick={() => handleProtectedAction()}
               />
             </div>
           </header>
 
-          {/* Sidebar (Desktop diam di kiri, HP meluncur dari samping) */}
+          {/* Sidebar */}
           <Sidebar
             currentTab={currentTab}
-            setTab={setCurrentTab}
-            role={role}
-            user={currentUser}
+            setTab={(tab) => handleProtectedAction(() => setCurrentTab(tab))}
+            role={currentUser ? role : 'mahasiswa'}
+            user={currentUser || guestUser}
             isOpenMobile={mobileMenuOpen}
             onCloseMobile={() => setMobileMenuOpen(false)}
           />
 
-          {/* Konten Halaman */}
+          {/* Konten Halaman Utama */}
           <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-            {role === 'mahasiswa' && currentTab === 'home' && (
+            {currentTab === 'home' && (
               <UserHome
-                user={currentUser}
-                reports={reports}
-                goToForm={() => setCurrentTab('form')}
+                user={currentUser || guestUser}
+                reports={currentUser ? reports : []} // Jika pengunjung, array laporan dikosongkan agar angka 0 semua
+                goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
               />
             )}
 
-            {role === 'mahasiswa' && currentTab === 'form' && (
+            {currentUser && role === 'mahasiswa' && currentTab === 'form' && (
               <UserReportForm
                 onSubmitReport={handleAddReport}
                 onCancel={() => setCurrentTab('home')}
               />
             )}
 
-            {role === 'mahasiswa' && currentTab === 'history' && (
+            {currentUser && role === 'mahasiswa' && currentTab === 'history' && (
               <UserReportHistory
                 reports={reports}
                 onSelectReport={(rep) => setUserModalReport(rep)}
               />
             )}
 
-            {currentTab === 'profile' && (
+            {currentUser && currentTab === 'profile' && (
               <UserProfile
                 user={currentUser}
                 role={role}
@@ -261,7 +284,7 @@ export default function App() {
               />
             )}
 
-            {role === 'admin' && currentTab === 'admin-home' && (
+            {currentUser && role === 'admin' && currentTab === 'admin-home' && (
               <AdminHome
                 reports={reports}
                 onSelectReport={(rep) => {
@@ -271,7 +294,7 @@ export default function App() {
               />
             )}
 
-            {role === 'admin' && currentTab === 'admin-detail' && (
+            {currentUser && role === 'admin' && currentTab === 'admin-detail' && (
               <AdminReportDetail
                 report={selectedReport}
                 onBack={() => setCurrentTab('admin-home')}
