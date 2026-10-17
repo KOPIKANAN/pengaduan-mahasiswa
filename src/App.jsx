@@ -52,7 +52,7 @@ export default function App() {
   };
 
   const handleLogin = (credentials) => {
-    const { email } = credentials;
+        const { email, name } = credentials;
     let loggedUser;
 
     if (email.toLowerCase().includes('admin')) {
@@ -68,7 +68,8 @@ export default function App() {
       // Jika login pakai email default Dimas, gunakan nama Dimas. Jika email lain, sesuaikan.
       const isDimas = email.toLowerCase().includes('dimasmahardika') || email === INITIAL_USER.email;
       loggedUser = {
-        name: isDimas ? INITIAL_USER.name : email.split('@')[0].toUpperCase(),
+      // Prioritas: nama yang diisi saat registrasi. Email hanya dipakai sebagai cadangan terakhir.
+        name: name || (isDimas ? INITIAL_USER.name : email.split('@')[0]),
         email: email,
         role: 'Mahasiswa',
         nim: isDimas ? '2311010888' : '2311010' + Math.floor(100 + Math.random() * 900),
@@ -217,7 +218,7 @@ export default function App() {
 
       {!currentUser && authView === 'login' && (
         <LoginPage
-          onLogin={(email) => handleLogin({ email })}
+          onLogin={(user) => handleLogin(user)}
           goToRegister={() => setAuthView('register')}
         />
       )}
@@ -294,6 +295,13 @@ export default function App() {
                 user={currentUser}
                 role={role}
                 onUpdateUser={(updated) => {
+                  // Sinkronkan nama baru ke data akun terdaftar agar tidak hilang saat login ulang
+                  const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
+                  const syncedUsers = users.map((u) =>
+                    u.email === currentUser.email ? { ...u, name: updated.name } : u
+                  );
+                  localStorage.setItem('silapor_users', JSON.stringify(syncedUsers));
+
                   setCurrentUser(updated);
                   localStorage.setItem('pengaduan_active_session', JSON.stringify(updated));
                   triggerToast('Profil berhasil disimpan!');

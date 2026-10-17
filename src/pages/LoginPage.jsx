@@ -17,9 +17,9 @@ export default function LoginPage({ onLogin, goToRegister }) {
       (user) => user.email === email && user.password === password
     );
 
-    if (foundUser) {
-      // Jika cocok, jalankan fungsi onLogin milik parent component
-      onLogin(foundUser.email);
+        if (foundUser) {
+      // Jika cocok, kirim data user lengkap (termasuk nama) ke parent component
+      onLogin({ name: foundUser.name, email: foundUser.email });
     } else {
       // Jika tidak ditemukan atau password salah
       setError('Email atau password salah, atau akun belum terdaftar!');
