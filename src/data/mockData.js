@@ -17,21 +17,23 @@ export const INITIAL_REPORTS = [
     location: 'GEDUNG A (TOILET LT. 2)',
     description: 'Wastafel di toilet lantai 2 tersumbat air tidak bisa mengalir dan meluap ke lantai.',
     image: '/images/sink.png',
-    status: 'Selesai', // Selesai, Diproses, Ditolak, Menunggu
-    adminStatus: 'SELESAI'
+    status: 'Selesai',
+    adminStatus: 'SELESAI',
+    userEmail: 'dimasmahardika@mhs.unjaya.ac.id' // Mengunci data ini khusus untuk akun Dimas
   },
   {
     id: '2',
     ticketId: '15426578981',
     title: 'KURSI KURANG LAYAK PAKAI',
-    category: 'PROYEKTOR RUSAK', // In admin view: PROYEKTOR RUSAK or Fasilitas
+    category: 'PROYEKTOR RUSAK',
     date: '2026-09-20',
     formattedDate: '20 September 2026',
     location: 'GEDUNG B (RUANG LAB 2)',
     description: 'Beberapa kursi kuliah kayu dan proyektor di ruangan mengalami kerusakan.',
     image: '/images/chair.png',
     status: 'Selesai',
-    adminStatus: 'SELESAI'
+    adminStatus: 'SELESAI',
+    userEmail: 'dimasmahardika@mhs.unjaya.ac.id'
   },
   {
     id: '3',
@@ -41,10 +43,11 @@ export const INITIAL_REPORTS = [
     date: '2026-09-24',
     formattedDate: '24 September 2026',
     location: 'GEDUNG A (KELAS A1)',
-    description: 'AC di ruang rapat B mengeluarkan suara bising dan suhu tidak kunjung turun meskipun sudah diatur ke 16 derajat. Mohon segera diperbaiki.',
+    description: 'AC di ruang rapat B mengeluarkan suara bising dan suhu tidak kunjung turun.',
     image: '/images/ac.png',
     status: 'Diproses',
-    adminStatus: 'MENUNGGU VERIFIKASI'
+    adminStatus: 'MENUNGGU VERIFIKASI',
+    userEmail: 'dimasmahardika@mhs.unjaya.ac.id'
   },
   {
     id: '4',
@@ -57,7 +60,8 @@ export const INITIAL_REPORTS = [
     description: 'Lampu penerangan di lorong utama redup dan berkedip saat malam hari.',
     image: '/images/lamp.png',
     status: 'Ditolak',
-    adminStatus: 'DITOLAK'
+    adminStatus: 'DITOLAK',
+    userEmail: 'dimasmahardika@mhs.unjaya.ac.id'
   }
 ];
 

@@ -18,7 +18,6 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // State tampilan auth: 'landing' | 'login' | 'register'
   const [authView, setAuthView] = useState('landing'); 
   const [role, setRole] = useState(() => currentUser?.role === 'Admin' ? 'admin' : 'mahasiswa');
   const [currentTab, setCurrentTab] = useState('home');
@@ -43,7 +42,6 @@ export default function App() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Proteksi Tombol/Aksi: Jika belum login, arahkan langsung ke Halaman Login
   const handleProtectedAction = (actionCallback) => {
     if (!currentUser) {
       setAuthView('login');
@@ -67,10 +65,14 @@ export default function App() {
       setRole('admin');
       setCurrentTab('admin-home');
     } else {
+      // Jika login pakai email default Dimas, gunakan nama Dimas. Jika email lain, sesuaikan.
+      const isDimas = email.toLowerCase().includes('dimasmahardika') || email === INITIAL_USER.email;
       loggedUser = {
-        ...INITIAL_USER,
+        name: isDimas ? INITIAL_USER.name : email.split('@')[0].toUpperCase(),
         email: email,
         role: 'Mahasiswa',
+        nim: isDimas ? '2311010888' : '2311010' + Math.floor(100 + Math.random() * 900),
+        avatar: '/images/avatar.png',
       };
       setRole('mahasiswa');
       setCurrentTab('home');
@@ -106,7 +108,11 @@ export default function App() {
   };
 
   const handleAddReport = (newReport) => {
-    setReports((prev) => [newReport, ...prev]);
+    const reportWithAuthor = {
+      ...newReport,
+      userEmail: currentUser.email, // Mengikat laporan mutlak ke email user yang aktif
+    };
+    setReports((prev) => [reportWithAuthor, ...prev]);
     triggerToast(`Laporan #${newReport.ticketId} berhasil dikirim!`);
     setCurrentTab('history');
   };
@@ -145,7 +151,6 @@ export default function App() {
     triggerToast(`Status tiket berhasil diubah menjadi: ${newStatus}`);
   };
 
-  // Data Pengunjung (Guest) saat belum Login
   const guestUser = {
     name: 'Pengunjung',
     email: 'guest@unjaya.ac.id',
@@ -153,9 +158,28 @@ export default function App() {
     avatar: '/images/avatar.png'
   };
 
+  // FUNGSI FILTER UTAMA PER USER:
+  // - Jika Admin: melihat semua laporan
+  // - Jika Mahasiswa: hanya melihat laporan yang userEmail-nya cocok persis dengan email user login
+  // (Data lama yang tidak punya userEmail dikhususkan hanya untuk akun Dimas Mahardika default)
+  const getFilteredReportsForUser = () => {
+    if (!currentUser) return [];
+    if (role === 'admin') return reports;
+
+    return reports.filter((r) => {
+      if (currentUser.email === INITIAL_USER.email) {
+        // Akun Dimas melihat miliknya sendiri + data mock bawaan awal
+        return r.userEmail === currentUser.email || !r.userEmail;
+      }
+      // Akun mahasiswa lain HANYA melihat laporan yang dibuat oleh email mereka sendiri
+      return r.userEmail === currentUser.email;
+    });
+  };
+
+  const activeUserReports = getFilteredReportsForUser();
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans relative selection:bg-brand-teal selection:text-white">
-      {/* Toast Alert */}
       {toast && (
         <div className="fixed top-5 right-5 z-50 flex items-center space-x-3 bg-gray-900/95 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-gray-700 animate-fade-in text-sm font-semibold max-w-sm">
           {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-green shrink-0" />}
@@ -165,7 +189,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Modal Logout */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-gray-100 animate-scale-in">
@@ -192,7 +215,6 @@ export default function App() {
         </div>
       )}
 
-      {/* JIKA BELUM LOGIN DAN MEMILIH KE HALAMAN LOGIN / REGISTER */}
       {!currentUser && authView === 'login' && (
         <LoginPage
           onLogin={(email) => handleLogin({ email })}
@@ -207,11 +229,9 @@ export default function App() {
         />
       )}
 
-      {/* TAMPILAN DASHBOARD (Dapat diakses jika User Login ATAU Landing Mode 'landing') */}
       {(currentUser || authView === 'landing') && (
         <div className="flex flex-col md:flex-row flex-1 min-h-screen overflow-hidden">
           
-          {/* Header Mobile */}
           <header className="md:hidden bg-brand-teal text-white px-4 py-3.5 flex items-center justify-between shadow-md z-30">
             <div className="flex items-center space-x-3">
               <button
@@ -237,7 +257,6 @@ export default function App() {
             </div>
           </header>
 
-          {/* Sidebar */}
           <Sidebar
             currentTab={currentTab}
             setTab={(tab) => handleProtectedAction(() => setCurrentTab(tab))}
@@ -247,12 +266,11 @@ export default function App() {
             onCloseMobile={() => setMobileMenuOpen(false)}
           />
 
-          {/* Konten Halaman Utama */}
           <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
             {currentTab === 'home' && (
               <UserHome
                 user={currentUser || guestUser}
-                reports={currentUser ? reports : []} // Jika pengunjung, array laporan dikosongkan agar angka 0 semua
+                reports={activeUserReports} // Statistik Home ikut terfilter per user!
                 goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
               />
             )}
@@ -266,7 +284,7 @@ export default function App() {
 
             {currentUser && role === 'mahasiswa' && currentTab === 'history' && (
               <UserReportHistory
-                reports={reports}
+                reports={activeUserReports} // Riwayat History terfilter per user mutlak!
                 onSelectReport={(rep) => setUserModalReport(rep)}
               />
             )}
@@ -305,7 +323,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Modal Detail Mahasiswa */}
       {userModalReport && (
         <UserReportDetailModal
           report={userModalReport}

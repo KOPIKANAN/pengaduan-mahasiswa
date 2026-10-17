@@ -53,9 +53,9 @@ export default function UserHome({ user, reports, goToForm }) {
 
             {/* Greeting & Action */}
             <div className="md:w-7/12 text-center md:text-left space-y-5">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight leading-loose">
                 Selamat Pagi<br />
-                <span className="text-gray-900">{user?.name || 'Pengunjung'}</span>
+                <span className="text-gray-900 block mt-2">{user?.name || 'Pengunjung'}</span>
               </h1>
 
               <div>
