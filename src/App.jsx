@@ -33,7 +33,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-    const loadReports = async () => {
+  const loadReports = async () => {
     setIsLoading(true);
     setLoadError('');
     try {
@@ -64,7 +64,7 @@ export default function App() {
   };
 
   const handleLogin = (credentials) => {
-        const { email, name } = credentials;
+    const { email, name } = credentials;
     let loggedUser;
 
     if (email.toLowerCase().includes('admin')) {
@@ -77,10 +77,8 @@ export default function App() {
       setRole('admin');
       setCurrentTab('admin-home');
     } else {
-      // Jika login pakai email default Dimas, gunakan nama Dimas. Jika email lain, sesuaikan.
       const isDimas = email.toLowerCase().includes('dimasmahardika') || email === INITIAL_USER.email;
       loggedUser = {
-      // Prioritas: nama yang diisi saat registrasi. Email hanya dipakai sebagai cadangan terakhir.
         name: name || (isDimas ? INITIAL_USER.name : email.split('@')[0]),
         email: email,
         role: 'Mahasiswa',
@@ -121,59 +119,48 @@ export default function App() {
   };
 
   const handleAddReport = async (newReport) => {
-  const { id, ...payload } = newReport;
-  try {
-    const saved = await createReport({ ...payload, userEmail: currentUser.email });
-    setReports((prev) => [saved, ...prev]);
-    triggerToast(`Laporan #${saved.ticketId} berhasil dikirim!`);
-    setCurrentTab('history');
-    return true;
-  } catch {
-    triggerToast('Gagal mengirim laporan. Coba lagi.', 'error');
-    return false;
-  }
-};
+    const { id, ...payload } = newReport;
+    try {
+      const saved = await createReport({ ...payload, userEmail: currentUser.email });
+      setReports((prev) => [saved, ...prev]);
+      triggerToast(`Laporan #${saved.ticketId || 'Baru'} berhasil dikirim!`);
+      setCurrentTab('history');
+      return true;
+    } catch {
+      triggerToast('Gagal mengirim laporan. Coba lagi.', 'error');
+      return false;
+    }
+  };
 
   const handleUpdateStatus = async (reportId, newStatus, newAdminStatus, note) => {
-  const target = reports.find((r) => r.id === reportId);
-  const patch = {
-    ...target,
-    status: newStatus,
-    adminStatus: newAdminStatus,
-    notes: note || target.notes,
-    timeline: [...(target.timeline || []), { step: `Status diubah ke ${newStatus}`, time: 'Baru saja', done: true }],
-  };
-  try {
-    const saved = await updateReport(reportId, patch);
-    setReports((prev) => prev.map((r) => (r.id === reportId ? saved : r)));
-    setSelectedReport((prev) => (prev && prev.id === reportId ? saved : prev));
-    triggerToast(`Status tiket berhasil diubah menjadi: ${newStatus}`);
-  } catch {
-    triggerToast('Gagal memperbarui status. Coba lagi.', 'error');
-  }
-};
-
-const handleDeleteReport = async (reportId) => {
-  try {
-    await deleteReport(reportId);
-    setReports((prev) => prev.filter((r) => r.id !== reportId));
-    setCurrentTab('admin-home');
-    triggerToast('Laporan berhasil dihapus.', 'info');
-  } catch {
-    triggerToast('Gagal menghapus laporan.', 'error');
-  }
-};
-
-    if (selectedReport && selectedReport.id === reportId) {
-      setSelectedReport((prev) => ({
-        ...prev,
-        status: newStatus,
-        adminStatus: newAdminStatus,
-        notes: note || prev.notes
-      }));
+    const target = reports.find((r) => r.id === reportId);
+    const patch = {
+      ...target,
+      status: newStatus,
+      adminStatus: newAdminStatus,
+      notes: note || target?.notes,
+      timeline: [...(target?.timeline || []), { step: `Status diubah ke ${newStatus}`, time: 'Baru saja', done: true }],
+    };
+    try {
+      const saved = await updateReport(reportId, patch);
+      setReports((prev) => prev.map((r) => (r.id === reportId ? saved : r)));
+      setSelectedReport((prev) => (prev && prev.id === reportId ? saved : prev));
+      
+      triggerToast(`Status tiket berhasil diubah menjadi: ${newStatus}`);
+    } catch {
+      triggerToast('Gagal memperbarui status. Coba lagi.', 'error');
     }
+  };
 
-    triggerToast(`Status tiket berhasil diubah menjadi: ${newStatus}`);
+  const handleDeleteReport = async (reportId) => {
+    try {
+      await deleteReport(reportId);
+      setReports((prev) => prev.filter((r) => r.id !== reportId));
+      setCurrentTab('admin-home');
+      triggerToast('Laporan berhasil dihapus.', 'info');
+    } catch {
+      triggerToast('Gagal menghapus laporan.', 'error');
+    }
   };
 
   const guestUser = {
@@ -183,20 +170,14 @@ const handleDeleteReport = async (reportId) => {
     avatar: '/images/avatar.png'
   };
 
-  // FUNGSI FILTER UTAMA PER USER:
-  // - Jika Admin: melihat semua laporan
-  // - Jika Mahasiswa: hanya melihat laporan yang userEmail-nya cocok persis dengan email user login
-  // (Data lama yang tidak punya userEmail dikhususkan hanya untuk akun Dimas Mahardika default)
   const getFilteredReportsForUser = () => {
     if (!currentUser) return [];
     if (role === 'admin') return reports;
 
     return reports.filter((r) => {
       if (currentUser.email === INITIAL_USER.email) {
-        // Akun Dimas melihat miliknya sendiri + data mock bawaan awal
         return r.userEmail === currentUser.email || !r.userEmail;
       }
-      // Akun mahasiswa lain HANYA melihat laporan yang dibuat oleh email mereka sendiri
       return r.userEmail === currentUser.email;
     });
   };
@@ -292,64 +273,81 @@ const handleDeleteReport = async (reportId) => {
           />
 
           <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-            {currentTab === 'home' && (
-              <UserHome
-                user={currentUser || guestUser}
-                reports={activeUserReports} // Statistik Home ikut terfilter per user!
-                goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
-              />
-            )}
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center p-10 text-gray-500 font-bold animate-pulse">
+                Memuat data dari MockAPI...
+              </div>
+            ) : loadError ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-3">
+                <p className="text-red-600 font-semibold text-sm">{loadError}</p>
+                <button
+                  onClick={loadReports}
+                  className="px-4 py-2 bg-brand-teal text-white rounded-xl text-xs font-bold shadow-sm"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            ) : (
+              <>
+                {currentTab === 'home' && (
+                  <UserHome
+                    user={currentUser || guestUser}
+                    reports={activeUserReports}
+                    goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
+                  />
+                )}
 
-            {currentUser && role === 'mahasiswa' && currentTab === 'form' && (
-              <UserReportForm
-                onSubmitReport={handleAddReport}
-                onCancel={() => setCurrentTab('home')}
-              />
-            )}
+                {currentUser && role === 'mahasiswa' && currentTab === 'form' && (
+                  <UserReportForm
+                    onSubmitReport={handleAddReport}
+                    onCancel={() => setCurrentTab('home')}
+                  />
+                )}
 
-            {currentUser && role === 'mahasiswa' && currentTab === 'history' && (
-              <UserReportHistory
-                reports={activeUserReports} // Riwayat History terfilter per user mutlak!
-                onSelectReport={(rep) => setUserModalReport(rep)}
-              />
-            )}
+                {currentUser && role === 'mahasiswa' && currentTab === 'history' && (
+                  <UserReportHistory
+                    reports={activeUserReports}
+                    onSelectReport={(rep) => setUserModalReport(rep)}
+                  />
+                )}
 
-            {currentUser && currentTab === 'profile' && (
-              <UserProfile
-                user={currentUser}
-                role={role}
-                onUpdateUser={(updated) => {
-                  // Sinkronkan nama baru ke data akun terdaftar agar tidak hilang saat login ulang
-                  const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
-                  const syncedUsers = users.map((u) =>
-                    u.email === currentUser.email ? { ...u, name: updated.name } : u
-                  );
-                  localStorage.setItem('silapor_users', JSON.stringify(syncedUsers));
+                {currentUser && currentTab === 'profile' && (
+                  <UserProfile
+                    user={currentUser}
+                    role={role}
+                    onUpdateUser={(updated) => {
+                      const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
+                      const syncedUsers = users.map((u) =>
+                        u.email === currentUser.email ? { ...u, name: updated.name } : u
+                      );
+                      localStorage.setItem('silapor_users', JSON.stringify(syncedUsers));
 
-                  setCurrentUser(updated);
-                  localStorage.setItem('pengaduan_active_session', JSON.stringify(updated));
-                  triggerToast('Profil berhasil disimpan!');
-                }}
-                onSignOut={() => setShowLogoutConfirm(true)}
-              />
-            )}
+                      setCurrentUser(updated);
+                      localStorage.setItem('pengaduan_active_session', JSON.stringify(updated));
+                      triggerToast('Profil berhasil disimpan!');
+                    }}
+                    onSignOut={() => setShowLogoutConfirm(true)}
+                  />
+                )}
 
-            {currentUser && role === 'admin' && currentTab === 'admin-home' && (
-              <AdminHome
-                reports={reports}
-                onSelectReport={(rep) => {
-                  setSelectedReport(rep);
-                  setCurrentTab('admin-detail');
-                }}
-              />
-            )}
+                {currentUser && role === 'admin' && currentTab === 'admin-home' && (
+                  <AdminHome
+                    reports={reports}
+                    onSelectReport={(rep) => {
+                      setSelectedReport(rep);
+                      setCurrentTab('admin-detail');
+                    }}
+                  />
+                )}
 
-            {currentUser && role === 'admin' && currentTab === 'admin-detail' && selectedReport && (
-              <AdminReportDetail
-                report={selectedReport}
-                onBack={() => setCurrentTab('admin-home')}
-                onUpdateStatus={handleUpdateStatus}
-              />
+                {currentUser && role === 'admin' && currentTab === 'admin-detail' && selectedReport && (
+                  <AdminReportDetail
+                    report={selectedReport}
+                    onBack={() => setCurrentTab('admin-home')}
+                    onUpdateStatus={handleUpdateStatus}
+                  />
+                )}
+              </>
             )}
           </main>
         </div>
