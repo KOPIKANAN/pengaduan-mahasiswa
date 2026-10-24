@@ -9,7 +9,8 @@ import UserProfile from './pages/UserProfile';
 import AdminHome from './pages/AdminHome';
 import AdminReportDetail from './pages/AdminReportDetail';
 import UserReportDetailModal from './components/UserReportDetailModal';
-import { INITIAL_USER, INITIAL_REPORTS } from './data/mockData';
+import { INITIAL_USER } from './data/mockData';
+import { getReports, createReport, updateReport, deleteReport } from './services/reportApi';
 import { CheckCircle2, AlertCircle, Info, LogOut, Menu } from 'lucide-react';
 
 export default function App() {
@@ -23,19 +24,30 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [reports, setReports] = useState(() => {
-    const saved = localStorage.getItem('pengaduan_reports_data');
-    return saved ? JSON.parse(saved) : INITIAL_REPORTS;
-  });
+  const [reports, setReports] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const [selectedReport, setSelectedReport] = useState(reports[2] || reports[0]);
+  const [selectedReport, setSelectedReport] = useState(null);
   const [userModalReport, setUserModalReport] = useState(null);
   const [toast, setToast] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+    const loadReports = async () => {
+    setIsLoading(true);
+    setLoadError('');
+    try {
+      setReports(await getReports());
+    } catch {
+      setLoadError('Gagal memuat data. Periksa koneksi lalu coba lagi.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem('pengaduan_reports_data', JSON.stringify(reports));
-  }, [reports]);
+    loadReports();
+  }, []);
 
   const triggerToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -108,37 +120,49 @@ export default function App() {
     triggerToast('Anda telah keluar dari aplikasi.', 'info');
   };
 
-  const handleAddReport = (newReport) => {
-    const reportWithAuthor = {
-      ...newReport,
-      userEmail: currentUser.email, // Mengikat laporan mutlak ke email user yang aktif
-    };
-    setReports((prev) => [reportWithAuthor, ...prev]);
-    triggerToast(`Laporan #${newReport.ticketId} berhasil dikirim!`);
+  const handleAddReport = async (newReport) => {
+  const { id, ...payload } = newReport;
+  try {
+    const saved = await createReport({ ...payload, userEmail: currentUser.email });
+    setReports((prev) => [saved, ...prev]);
+    triggerToast(`Laporan #${saved.ticketId} berhasil dikirim!`);
     setCurrentTab('history');
-  };
+    return true;
+  } catch {
+    triggerToast('Gagal mengirim laporan. Coba lagi.', 'error');
+    return false;
+  }
+};
 
-  const handleUpdateStatus = (reportId, newStatus, newAdminStatus, note) => {
-    setReports((prev) =>
-      prev.map((r) => {
-        if (r.id === reportId) {
-          const updatedTimeline = r.timeline ? [...r.timeline] : [];
-          updatedTimeline.push({
-            step: `Status diubah ke ${newStatus}`,
-            time: 'Baru saja',
-            done: true
-          });
-          return {
-            ...r,
-            status: newStatus,
-            adminStatus: newAdminStatus,
-            notes: note || r.notes,
-            timeline: updatedTimeline
-          };
-        }
-        return r;
-      })
-    );
+  const handleUpdateStatus = async (reportId, newStatus, newAdminStatus, note) => {
+  const target = reports.find((r) => r.id === reportId);
+  const patch = {
+    ...target,
+    status: newStatus,
+    adminStatus: newAdminStatus,
+    notes: note || target.notes,
+    timeline: [...(target.timeline || []), { step: `Status diubah ke ${newStatus}`, time: 'Baru saja', done: true }],
+  };
+  try {
+    const saved = await updateReport(reportId, patch);
+    setReports((prev) => prev.map((r) => (r.id === reportId ? saved : r)));
+    setSelectedReport((prev) => (prev && prev.id === reportId ? saved : prev));
+    triggerToast(`Status tiket berhasil diubah menjadi: ${newStatus}`);
+  } catch {
+    triggerToast('Gagal memperbarui status. Coba lagi.', 'error');
+  }
+};
+
+const handleDeleteReport = async (reportId) => {
+  try {
+    await deleteReport(reportId);
+    setReports((prev) => prev.filter((r) => r.id !== reportId));
+    setCurrentTab('admin-home');
+    triggerToast('Laporan berhasil dihapus.', 'info');
+  } catch {
+    triggerToast('Gagal menghapus laporan.', 'error');
+  }
+};
 
     if (selectedReport && selectedReport.id === reportId) {
       setSelectedReport((prev) => ({
@@ -320,7 +344,7 @@ export default function App() {
               />
             )}
 
-            {currentUser && role === 'admin' && currentTab === 'admin-detail' && (
+            {currentUser && role === 'admin' && currentTab === 'admin-detail' && selectedReport && (
               <AdminReportDetail
                 report={selectedReport}
                 onBack={() => setCurrentTab('admin-home')}
