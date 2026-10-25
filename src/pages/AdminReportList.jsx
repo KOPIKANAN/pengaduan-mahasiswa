@@ -5,7 +5,6 @@ import EmptyState from '../components/EmptyState';
 import AdminReportListSkeleton from '../components/AdminReportListSkeleton';
 
 export default function AdminReportList({ reports, onSelectReport, isLoading }) {
-  // Jika sedang memuat data, tampilkan skeleton
   if (isLoading) {
     return <AdminReportListSkeleton rows={6} />;
   }
@@ -128,10 +127,53 @@ export default function AdminReportList({ reports, onSelectReport, isLoading }) 
             </tbody>
           </table>
         </div>
+
         <div className="text-[11px] sm:text-xs text-gray-500 font-medium text-right">
           Menampilkan {currentReports.length > 0 ? startIndex + 1 : 0} - {startIndex + currentReports.length} dari {filteredReports.length} laporan
         </div>
       </div>
+
+      {/* --- TOMBOL NAVIGASI PAGINATION YANG KETINGGALAN --- */}
+      {totalPages > 1 && (
+        <div className="max-w-5xl mx-auto w-full pt-6 pb-2 flex items-center justify-center space-x-2 sm:space-x-3">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={validPage === 1}
+            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Sebelumnya</span>
+          </button>
+
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            {Array.from({ length: totalPages }, (_, index) => {
+              const pageNum = index + 1;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-2xl text-xs font-black transition-all cursor-pointer ${
+                    validPage === pageNum
+                      ? 'bg-brand-dark text-white shadow-md scale-105'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={validPage === totalPages}
+            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            <span className="hidden sm:inline">Selanjutnya</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
