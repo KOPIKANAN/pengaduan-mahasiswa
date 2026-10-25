@@ -53,10 +53,10 @@ export default function App() {
   }, []);
 
   const triggerToast = (message, type = 'success') => {
-  if (type === 'error') toast.error(message);
-  else if (type === 'info') toast.info(message);
-  else toast.success(message);
-};
+    if (type === 'error') toast.error(message);
+    else if (type === 'info') toast.info(message);
+    else toast.success(message);
+  };
 
   const handleProtectedAction = (actionCallback) => {
     if (!currentUser) {
@@ -190,9 +190,17 @@ export default function App() {
 
   const renderData = (content) =>
     isLoading ? <ReportSkeleton /> :
-    loadError ? <ErrorState message={loadError} onRetry={loadReports} /> :
-    content;
-    
+    loadError ? (
+      <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-3">
+        <p className="text-red-600 font-semibold text-sm">{loadError}</p>
+        <button
+          onClick={loadReports}
+          className="px-4 py-2 bg-brand-teal text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    ) : content;
 
   const homePage = (
     <UserHome
@@ -204,6 +212,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans relative selection:bg-brand-teal selection:text-white">
+      <Toaster position="top-right" richColors />
 
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
@@ -283,7 +292,6 @@ export default function App() {
           />
 
           <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-
             {currentTab === 'home' && (currentUser ? renderData(homePage) : homePage)}
 
             {currentUser && role === 'mahasiswa' && currentTab === 'form' && (
@@ -305,7 +313,6 @@ export default function App() {
                 user={currentUser}
                 role={role}
                 onUpdateUser={(updated) => {
-                  // Sinkronkan nama baru ke data akun terdaftar agar tidak hilang saat login ulang
                   const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
                   const syncedUsers = users.map((u) =>
                     u.email === currentUser.email ? { ...u, name: updated.name } : u
@@ -320,7 +327,7 @@ export default function App() {
               />
             )}
 
-                        {currentUser && role === 'admin' && currentTab === 'admin-home' && renderData(
+            {currentUser && role === 'admin' && currentTab === 'admin-home' && renderData(
               <AdminHome
                 reports={reports}
                 onSelectReport={(rep) => {
@@ -336,83 +343,6 @@ export default function App() {
                 onBack={() => setCurrentTab('admin-home')}
                 onUpdateStatus={handleUpdateStatus}
               />
-
-            {isLoading ? (
-              <div className="flex-1 flex items-center justify-center p-10 text-gray-500 font-bold animate-pulse">
-                Memuat data dari MockAPI...
-              </div>
-            ) : loadError ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-3">
-                <p className="text-red-600 font-semibold text-sm">{loadError}</p>
-                <button
-                  onClick={loadReports}
-                  className="px-4 py-2 bg-brand-teal text-white rounded-xl text-xs font-bold shadow-sm"
-                >
-                  Coba Lagi
-                </button>
-              </div>
-            ) : (
-              <>
-                {currentTab === 'home' && (
-                  <UserHome
-                    user={currentUser || guestUser}
-                    reports={activeUserReports}
-                    goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
-                  />
-                )}
-
-                {currentUser && role === 'mahasiswa' && currentTab === 'form' && (
-                  <UserReportForm
-                    onSubmitReport={handleAddReport}
-                    onCancel={() => setCurrentTab('home')}
-                  />
-                )}
-
-                {currentUser && role === 'mahasiswa' && currentTab === 'history' && (
-                  <UserReportHistory
-                    reports={activeUserReports}
-                    onSelectReport={(rep) => setUserModalReport(rep)}
-                  />
-                )}
-
-                {currentUser && currentTab === 'profile' && (
-                  <UserProfile
-                    user={currentUser}
-                    role={role}
-                    onUpdateUser={(updated) => {
-                      const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
-                      const syncedUsers = users.map((u) =>
-                        u.email === currentUser.email ? { ...u, name: updated.name } : u
-                      );
-                      localStorage.setItem('silapor_users', JSON.stringify(syncedUsers));
-
-                      setCurrentUser(updated);
-                      localStorage.setItem('pengaduan_active_session', JSON.stringify(updated));
-                      triggerToast('Profil berhasil disimpan!');
-                    }}
-                    onSignOut={() => setShowLogoutConfirm(true)}
-                  />
-                )}
-
-                {currentUser && role === 'admin' && currentTab === 'admin-home' && (
-                  <AdminHome
-                    reports={reports}
-                    onSelectReport={(rep) => {
-                      setSelectedReport(rep);
-                      setCurrentTab('admin-detail');
-                    }}
-                  />
-                )}
-
-                {currentUser && role === 'admin' && currentTab === 'admin-detail' && selectedReport && (
-                  <AdminReportDetail
-                    report={selectedReport}
-                    onBack={() => setCurrentTab('admin-home')}
-                    onUpdateStatus={handleUpdateStatus}
-                  />
-                )}
-              </>
-
             )}
           </main>
         </div>
@@ -423,6 +353,7 @@ export default function App() {
           report={userModalReport}
           onClose={() => setUserModalReport(null)}
         />
-            )}
+      )}
     </div>
   );
+}

@@ -12,29 +12,27 @@ export default function AdminHome({ reports, onSelectReport }) {
 
   // Filter pencarian
   const filteredReports = reports.filter((report) => {
-  const q = searchQuery.toLowerCase();
-  const matchSearch =
-    (report.title || '').toLowerCase().includes(q) ||
-    (report.category || '').toLowerCase().includes(q) ||
-    (report.ticketId || '').toLowerCase().includes(q);
-  const matchStatus =
-    statusFilter === 'Semua' || (report.status || '').toLowerCase() === statusFilter.toLowerCase();
-  return matchSearch && matchStatus;
-});
-
-const resetFilter = () => { setSearchQuery(''); setStatusFilter('Semua'); setCurrentPage(1); };
-
-  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE) || 1;
-  const validPage = Math.min(currentPage, totalPages);
-
-  const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
-  const currentReports = filteredReports.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const q = searchQuery.toLowerCase();
+    const matchSearch =
+      (report.title || '').toLowerCase().includes(q) ||
+      (report.category || '').toLowerCase().includes(q) ||
+      (report.ticketId || '').toLowerCase().includes(q);
+    const matchStatus =
+      statusFilter === 'Semua' || (report.status || '').toLowerCase() === statusFilter.toLowerCase();
+    return matchSearch && matchStatus;
+  });
 
   const resetFilter = () => {
     setSearchQuery('');
     setStatusFilter('Semua');
     setCurrentPage(1);
   };
+
+  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE) || 1;
+  const validPage = Math.min(currentPage, totalPages);
+
+  const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
+  const currentReports = filteredReports.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const getStatusBadge = (report) => {
     const status = (report.adminStatus || report.status || '').toUpperCase();
@@ -85,20 +83,20 @@ const resetFilter = () => { setSearchQuery(''); setStatusFilter('Semua'); setCur
         </div>
 
         <div className="flex flex-wrap gap-2">
-  {['Semua', 'Diproses', 'Selesai', 'Ditolak'].map((s) => (
-    <button
-      key={s}
-      onClick={() => { setStatusFilter(s); setCurrentPage(1); }}
-      className={`px-4 py-1.5 rounded-pill text-xs font-bold border transition ${
-        statusFilter === s ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-gray-600 border-gray-300'
-      }`}
-    >
-      {s}
-    </button>
-  ))}
-</div>
+          {['Semua', 'Diproses', 'Selesai', 'Ditolak'].map((s) => (
+            <button
+              key={s}
+              onClick={() => { setStatusFilter(s); setCurrentPage(1); }}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold border transition cursor-pointer ${
+                statusFilter === s ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-gray-600 border-gray-300'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
 
-        {/* Tabel Laporan Responsif Mobile (Dilengkapi overflow-x-auto & padding adaptif) */}
+        {/* Tabel Laporan Responsif Mobile */}
         <div className="border border-brand-teal rounded-2xl overflow-x-auto shadow-sm bg-white">
           <table className="w-full text-left border-collapse min-w-[500px] sm:min-w-full">
             {/* Header Tabel */}
@@ -163,7 +161,7 @@ const resetFilter = () => { setSearchQuery(''); setStatusFilter('Semua'); setCur
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={validPage === 1}
-            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Sebelumnya</span>
@@ -176,7 +174,7 @@ const resetFilter = () => { setSearchQuery(''); setStatusFilter('Semua'); setCur
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-2xl text-xs font-black transition-all ${
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-2xl text-xs font-black transition-all cursor-pointer ${
                     validPage === pageNum
                       ? 'bg-brand-dark text-white shadow-md scale-105'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -191,7 +189,7 @@ const resetFilter = () => { setSearchQuery(''); setStatusFilter('Semua'); setCur
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={validPage === totalPages}
-            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <span className="hidden sm:inline">Selanjutnya</span>
             <ChevronRight className="w-4 h-4" />
