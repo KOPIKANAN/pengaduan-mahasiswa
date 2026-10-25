@@ -231,7 +231,7 @@ AI tool yang digunakan: **Claude (Anthropic)**, **Google (Gemini)** dan **Google
 | 4 | 7 | Dokumentasi | Meminta rancangan isi laporan PRD berdasarkan Brief dan Rubrik Modul 7 | Dokumen PRD dalam bentuk PDF |
 | 5 | 8 | Perencanaan | Meminta langkah demi langkah pengerjaan Modul 8 berdasarkan brief, dengan memetakan kondisi SiLapor terhadap rubrik | Rencana kerja: MockAPI, lapisan API, filter, validasi, UX states, deploy |
 | 6 | 8 | Lapisan API | Meminta perubahan `App.jsx` agar laporan diambil dan disimpan melalui API, bukan `localStorage` | `reportApi.js` dan perubahan state, `handleAddReport`, `handleUpdateStatus` |
-| 7 | 8 | Validasi form | Meminta penjelasan penggantian `handleSubmit` agar async, memakai `trim()`, dan menampilkan error per kolom | `validate()` dan `handleSubmit` baru di `UserReportForm.jsx` |
+| 7 | 8 | Validasi form | Meminta penjelasan penggantian `handleSubmit` agar async, memakai `trim()`, dan menampilkan error per kolom | `validate()` dan `handleSubmit` baru di `UserReportForm.jsx`, `Loginpage.jsx`, dan `Registerpage.jsx`|
 | 8 | 8 | UX states | [ISI: prompt untuk skeleton, empty state, error state, dan toast] | [ISI: hasil] |
 
 **Pola prompt yang dipakai saat menambah fitur di atas desain Modul 7:** awali dengan instruksi "Pertahankan seluruh class styling yang sudah ada", kerjakan bertahap, dan lakukan commit sebelum lanjut ke bagian berikutnya.

@@ -36,9 +36,13 @@ export default function UserReportForm({ onSubmitReport, onCancel }) {
     setFilePreview(null);
   };
 
-  const handleSubmit = (e) => {
+const handleSubmit = (e) => {
     e.preventDefault();
-    if (!category || !location || !description) return;
+    
+    const cleanLocation = location.trim();
+    const cleanDescription = description.trim();
+
+    if (!category || !cleanLocation || !cleanDescription) return;
 
     setIsSubmitting(true);
 
