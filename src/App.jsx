@@ -8,6 +8,7 @@ import UserReportForm from './pages/UserReportForm';
 import UserReportHistory from './pages/UserReportHistory';
 import UserProfile from './pages/UserProfile';
 import AdminHome from './pages/AdminHome';
+import AdminReportList from './pages/AdminReportList';
 import AdminReportDetail from './pages/AdminReportDetail';
 import UserReportDetailModal from './components/UserReportDetailModal';
 import { INITIAL_USER } from './data/mockData';
@@ -25,7 +26,15 @@ export default function App() {
 
   const [authView, setAuthView] = useState('landing'); 
   const [role, setRole] = useState(() => currentUser?.role === 'Admin' ? 'admin' : 'mahasiswa');
-  const [currentTab, setCurrentTab] = useState('home');
+  const [currentTab, setCurrentTab] = useState(() => {
+  const saved = localStorage.getItem('pengaduan_active_session');
+  if (saved) {
+    const userObj = JSON.parse(saved);
+    // Jika rolenya Admin, arahkan langsung ke 'admin-home', jika tidak ke 'home'
+    return userObj.role === 'Admin' ? 'admin-home' : 'home';
+  }
+  return 'home';
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [reports, setReports] = useState([]);
@@ -331,9 +340,21 @@ export default function App() {
               />
             )}
 
-            {currentUser && role === 'admin' && currentTab === 'admin-home' && renderData(
+            {/* Tab Home Admin */}
+            {currentUser && role === 'admin' && currentTab === 'admin-home' && (
               <AdminHome
+                user={currentUser}
                 reports={reports}
+                isLoading={isLoading}
+                goToReports={() => setCurrentTab('admin-reports')}
+              />
+            )}
+
+            {/* Tab Daftar Laporan Admin */}
+            {currentUser && role === 'admin' && currentTab === 'admin-reports' && (
+              <AdminReportList
+                reports={reports}
+                isLoading={isLoading}
                 onSelectReport={(rep) => {
                   setSelectedReport(rep);
                   setCurrentTab('admin-detail');
@@ -341,11 +362,13 @@ export default function App() {
               />
             )}
 
+            {/* Tab Detail Laporan Admin dengan Skeleton */}
             {currentUser && role === 'admin' && currentTab === 'admin-detail' && selectedReport && (
               <AdminReportDetail
                 report={selectedReport}
-                onBack={() => setCurrentTab('admin-home')}
+                onBack={() => setCurrentTab('admin-reports')}
                 onUpdateStatus={handleUpdateStatus}
+                isLoading={isLoading}
               />
             )}
           </main>

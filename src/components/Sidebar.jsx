@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import React from 'react';
 import { Home, FileText, Clock, ChevronRight, X } from 'lucide-react';
 
@@ -87,20 +88,37 @@ export default function Sidebar({ currentTab, setTab, role, user, isOpenMobile, 
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => handleMenuClick('admin-home')}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                  currentTab === 'admin-home'
-                    ? 'bg-white text-brand-dark shadow-sm'
-                    : 'text-white hover:bg-white/15'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <Home className={`w-5 h-5 ${currentTab === 'admin-home' ? 'text-brand-dark' : 'text-white'}`} />
-                  <span>Home</span>
-                </div>
-                <ChevronRight className={`w-4 h-4 ${currentTab === 'admin-home' ? 'text-brand-dark' : 'text-white/80'}`} />
-              </button>
+              <>
+                <button
+                  onClick={() => handleMenuClick('admin-home')}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    currentTab === 'admin-home'
+                      ? 'bg-white text-brand-dark shadow-sm'
+                      : 'text-white hover:bg-white/15'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Home className={`w-5 h-5 ${currentTab === 'admin-home' ? 'text-brand-dark' : 'text-white'}`} />
+                    <span>Home</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 ${currentTab === 'admin-home' ? 'text-brand-dark' : 'text-white/80'}`} />
+                </button>
+
+                <button
+                  onClick={() => handleMenuClick('admin-reports')}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    currentTab === 'admin-reports'
+                      ? 'bg-white text-brand-dark shadow-sm'
+                      : 'text-white hover:bg-white/15'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <FileText className={`w-5 h-5 ${currentTab === 'admin-reports' ? 'text-brand-dark' : 'text-white'}`} />
+                    <span>Daftar Laporan</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 ${currentTab === 'admin-reports' ? 'text-brand-dark' : 'text-white/80'}`} />
+                </button>
+              </>
             )}
           </div>
         </div>
