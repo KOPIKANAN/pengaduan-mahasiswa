@@ -13,7 +13,7 @@ Proyek ini dikerjakan oleh **Kelompok 9 - Divisi Web & UI/UX Developer** (Vinix 
 |---|---|
 | Live Web (Vercel) | [ISI: link Vercel] |
 | Repositori GitHub | https://github.com/robby5431/pengaduan-mahasiswa |
-| Desain Figma (Modul 5) | [ISI: link Figma Modul 5] |
+| Desain Figma (Modul 5) | https://www.figma.com/design/yDw5qop2pHOulbNWUyFsTs/ Desain-Website-Pelaporan-Kerusakan-Fasilitas-Kampus?nodeid=105-1265&p=f&t=TvbqGSfhxNo5jyS6-0 |
 
 ## Daftar Isi
 
@@ -219,18 +219,9 @@ Buka DevTools peramban (F12), aktifkan mode perangkat, lalu pilih lebar 375 px. 
 - **Modul 8:** seluruh pekerjaan dikerjakan di branch `feat/dynamic-data`, di atas repositori Modul 7, kemudian di-merge ke `main` melalui Pull Request.
 - File `.env` dan `.env.local` sudah masuk `.gitignore`. Folder `dist/` juga tidak lagi dilacak.
 
-## Kontribusi Anggota Kelompok
-
-| No | Nama | Kontribusi |
-|---|---|---|
-| 1 | Dimas Mahardika Salimi Pasa | [ISI: kontribusi] |
-| 2 | Daniel Revanka Ardianto Putra | [ISI: kontribusi] |
-| 3 | Muhammad Zulfikar Wahyu Pradana | [ISI: kontribusi] |
-| 4 | Robby Noviyandri Darmawan | [ISI: kontribusi] |
-
 ## Log Prompt AI
 
-AI tool yang digunakan: **Claude (Anthropic)**[ISI: tambahkan tool lain jika ada, misalnya v0, Cursor, atau Copilot].
+AI tool yang digunakan: **Claude (Anthropic)**, **Google (Gemini)** dan **Google (Antigravity)**
 
 | No | Modul | Tujuan | Ringkasan Prompt | Hasil |
 |---|---|---|---|---|
@@ -275,7 +266,6 @@ Bagian ini mencatat masalah yang ditemukan dan diperbaiki secara manual setelah 
 | 4 | `handleSubmit` memakai `setTimeout` palsu, sehingga layar sukses tampil walau data belum tersimpan | Diganti `await onSubmitReport(...)`; layar sukses hanya tampil jika pengiriman berhasil |
 | 5 | `selectedReport` bernilai `null` sebelum data dari API termuat dan berisiko menyebabkan crash di halaman detail admin | Menambahkan pengaman `selectedReport &&` pada render halaman detail |
 | 6 | Toast buatan sendiri tidak sesuai ketentuan brief | Diganti dengan Sonner, dengan tetap mempertahankan fungsi `triggerToast` agar pemanggilan lama tidak berubah |
-| 7 | [ISI: perbaikan manual lain yang kalian temukan] | [ISI] |
 
 ## Keterbatasan
 
