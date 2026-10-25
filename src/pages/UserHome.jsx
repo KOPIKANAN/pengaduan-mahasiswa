@@ -1,6 +1,12 @@
 import React from 'react';
+import UserHomeSkeleton from '../components/UserHomeSkeleton';
 
-export default function UserHome({ user, reports, goToForm }) {
+export default function UserHome({ user, reports, goToForm, isLoading }) {
+  // Jika sedang loading, tampilkan skeleton khusus UserHome
+  if (isLoading) {
+    return <UserHomeSkeleton />;
+  }
+
   // Cek apakah user sedang berada dalam mode Pengunjung / Guest
   const isGuest = !user || user.name === 'Pengunjung';
 

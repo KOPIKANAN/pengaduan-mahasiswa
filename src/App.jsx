@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import LoginPage from './pages/LoginPage';
@@ -33,7 +34,6 @@ export default function App() {
 
   const [selectedReport, setSelectedReport] = useState(null);
   const [userModalReport, setUserModalReport] = useState(null);
-  const [toast, setToast] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const loadReports = async () => {
@@ -202,14 +202,6 @@ export default function App() {
       </div>
     ) : content;
 
-  const homePage = (
-    <UserHome
-      user={currentUser || guestUser}
-      reports={activeUserReports}
-      goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
-    />
-  );
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans relative selection:bg-brand-teal selection:text-white">
       <Toaster position="top-right" richColors />
@@ -292,7 +284,15 @@ export default function App() {
           />
 
           <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-            {currentTab === 'home' && (currentUser ? renderData(homePage) : homePage)}
+            {/* Tab Beranda Mahasiswa dengan dukungan isLoading */}
+            {currentTab === 'home' && (
+              <UserHome
+                user={currentUser || guestUser}
+                reports={activeUserReports}
+                goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
+                isLoading={isLoading}
+              />
+            )}
 
             {currentUser && role === 'mahasiswa' && currentTab === 'form' && (
               <UserReportForm
@@ -301,10 +301,14 @@ export default function App() {
               />
             )}
 
-            {currentUser && role === 'mahasiswa' && currentTab === 'history' && renderData(
+            {/* Tab Riwayat Mahasiswa dengan props skeleton lengkap */}
+            {currentUser && role === 'mahasiswa' && currentTab === 'history' && (
               <UserReportHistory
                 reports={activeUserReports}
                 onSelectReport={(rep) => setUserModalReport(rep)}
+                isLoading={isLoading}
+                loadError={loadError}
+                onRetry={loadReports}
               />
             )}
 

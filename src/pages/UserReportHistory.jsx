@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Search, FileText } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
+import UserReportSkeleton from '../components/UserReportSkeleton';
 
-export default function UserReportHistory({ reports, onSelectReport }) {
+export default function UserReportHistory({ reports, onSelectReport, isLoading, loadError, onRetry }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,15 +13,15 @@ export default function UserReportHistory({ reports, onSelectReport }) {
 
   // Filter pencarian
   const filteredReports = reports.filter((report) => {
-  const q = searchQuery.toLowerCase();
-  const matchSearch =
-    (report.title || '').toLowerCase().includes(q) ||
-    (report.category || '').toLowerCase().includes(q) ||
-    (report.ticketId || '').toLowerCase().includes(q);
-  const matchStatus =
-    statusFilter === 'Semua' || (report.status || '').toLowerCase() === statusFilter.toLowerCase();
-  return matchSearch && matchStatus;
-});
+    const q = searchQuery.toLowerCase();
+    const matchSearch =
+      (report.title || '').toLowerCase().includes(q) ||
+      (report.category || '').toLowerCase().includes(q) ||
+      (report.ticketId || '').toLowerCase().includes(q);
+    const matchStatus =
+      statusFilter === 'Semua' || (report.status || '').toLowerCase() === statusFilter.toLowerCase();
+    return matchSearch && matchStatus;
+  });
 
   // Hitung jumlah slide/halaman
   const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE) || 1;
@@ -77,26 +78,35 @@ export default function UserReportHistory({ reports, onSelectReport }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-  {['Semua', 'Diproses', 'Selesai', 'Ditolak'].map((s) => (
-    <button
-      key={s}
-      onClick={() => { setStatusFilter(s); setCurrentPage(1); }}
-      className={`px-4 py-1.5 rounded-pill text-xs font-bold border transition ${
-        statusFilter === s ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-gray-600 border-gray-300'
-      }`}
-    >
-      {s}
-    </button>
-  ))}
-</div>
+            {['Semua', 'Diproses', 'Selesai', 'Ditolak'].map((s) => (
+              <button
+                key={s}
+                onClick={() => { setStatusFilter(s); setCurrentPage(1); }}
+                className={`px-4 py-1.5 rounded-pill text-xs font-bold border transition cursor-pointer ${
+                  statusFilter === s ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-gray-600 border-gray-300'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
 
           <span className="text-xs text-gray-500 font-semibold">
             Total Laporan: <strong className="text-brand-dark">{filteredReports.length}</strong>
           </span>
         </div>
 
-        {/* Grid Maksimal 4 Laporan per Slide (2x2) Sesuai Desain Figma */}
-        {currentReports.length > 0 ? (
+        {/* --- KONDISI STATE: Loading (Skeleton), Error, Empty, atau Data --- */}
+        {isLoading ? (
+          <UserReportSkeleton count={4} />
+        ) : loadError ? (
+          <div className="text-center py-12 space-y-3">
+            <p className="text-sm font-semibold text-red-600">{loadError}</p>
+            <button onClick={onRetry} className="px-5 py-2 rounded-pill bg-brand-dark text-white text-sm font-bold cursor-pointer">
+              Coba Lagi ↻
+            </button>
+          </div>
+        ) : currentReports.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             {currentReports.map((report) => (
               <div
@@ -131,7 +141,7 @@ export default function UserReportHistory({ reports, onSelectReport }) {
                 {/* Action Button: Lihat Detail */}
                 <button
                   onClick={() => onSelectReport(report)}
-                  className="bg-white hover:bg-gray-100 active:scale-95 text-gray-800 font-bold text-xs px-6 py-2 rounded-full shadow-sm transition-all duration-150"
+                  className="bg-white hover:bg-gray-100 active:scale-95 text-gray-800 font-bold text-xs px-6 py-2 rounded-full shadow-sm transition-all duration-150 cursor-pointer"
                 >
                   Lihat Detail
                 </button>
@@ -145,13 +155,13 @@ export default function UserReportHistory({ reports, onSelectReport }) {
       </div>
 
       {/* Navigasi Slide / Pagination di Bagian Bawah */}
-      {totalPages > 1 && (
+      {totalPages > 1 && !isLoading && !loadError && (
         <div className="max-w-5xl mx-auto w-full pt-8 pb-4 flex items-center justify-center space-x-3">
           {/* Tombol Slide Sebelumnya */}
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={validPage === 1}
-            className="flex items-center space-x-1 px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="flex items-center space-x-1 px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Sebelumnya</span>
@@ -165,7 +175,7 @@ export default function UserReportHistory({ reports, onSelectReport }) {
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`w-9 h-9 rounded-2xl text-xs font-black transition-all ${
+                  className={`w-9 h-9 rounded-2xl text-xs font-black transition-all cursor-pointer ${
                     validPage === pageNum
                       ? 'bg-brand-dark text-white shadow-md scale-105'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -181,7 +191,7 @@ export default function UserReportHistory({ reports, onSelectReport }) {
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={validPage === totalPages}
-            className="flex items-center space-x-1 px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="flex items-center space-x-1 px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <span>Selanjutnya</span>
             <ChevronRight className="w-4 h-4" />
