@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Search, FileText } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
 
 export default function AdminHome({ reports, onSelectReport }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Maksimal 10 laporan per halaman
@@ -10,18 +12,29 @@ export default function AdminHome({ reports, onSelectReport }) {
 
   // Filter pencarian
   const filteredReports = reports.filter((report) => {
-    const query = searchQuery.toLowerCase();
-    const ticketMatch = (report.ticketId || '').toLowerCase().includes(query);
-    const catMatch = (report.category || report.title || '').toLowerCase().includes(query);
-    const statusMatch = (report.adminStatus || report.status || '').toLowerCase().includes(query);
-    return ticketMatch || catMatch || statusMatch;
-  });
+  const q = searchQuery.toLowerCase();
+  const matchSearch =
+    (report.title || '').toLowerCase().includes(q) ||
+    (report.category || '').toLowerCase().includes(q) ||
+    (report.ticketId || '').toLowerCase().includes(q);
+  const matchStatus =
+    statusFilter === 'Semua' || (report.status || '').toLowerCase() === statusFilter.toLowerCase();
+  return matchSearch && matchStatus;
+});
+
+const resetFilter = () => { setSearchQuery(''); setStatusFilter('Semua'); setCurrentPage(1); };
 
   const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE) || 1;
   const validPage = Math.min(currentPage, totalPages);
 
   const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
   const currentReports = filteredReports.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const resetFilter = () => {
+    setSearchQuery('');
+    setStatusFilter('Semua');
+    setCurrentPage(1);
+  };
 
   const getStatusBadge = (report) => {
     const status = (report.adminStatus || report.status || '').toUpperCase();
@@ -71,6 +84,20 @@ export default function AdminHome({ reports, onSelectReport }) {
           </div>
         </div>
 
+        <div className="flex flex-wrap gap-2">
+  {['Semua', 'Diproses', 'Selesai', 'Ditolak'].map((s) => (
+    <button
+      key={s}
+      onClick={() => { setStatusFilter(s); setCurrentPage(1); }}
+      className={`px-4 py-1.5 rounded-pill text-xs font-bold border transition ${
+        statusFilter === s ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-gray-600 border-gray-300'
+      }`}
+    >
+      {s}
+    </button>
+  ))}
+</div>
+
         {/* Tabel Laporan Responsif Mobile (Dilengkapi overflow-x-auto & padding adaptif) */}
         <div className="border border-brand-teal rounded-2xl overflow-x-auto shadow-sm bg-white">
           <table className="w-full text-left border-collapse min-w-[500px] sm:min-w-full">
@@ -114,9 +141,8 @@ export default function AdminHome({ reports, onSelectReport }) {
 
               {currentReports.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400 font-semibold space-y-2">
-                    <FileText className="w-8 h-8 mx-auto text-gray-300" />
-                    <p>Tidak ada laporan yang sesuai.</p>
+                  <td colSpan={5}>
+                    <EmptyState onReset={resetFilter} />
                   </td>
                 </tr>
               )}

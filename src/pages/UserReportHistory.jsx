@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Search, FileText } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
 
 export default function UserReportHistory({ reports, onSelectReport }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Maksimal 4 laporan per slide/halaman sesuai permintaan
   const ITEMS_PER_PAGE = 4;
 
-  // Filter pencarian jika ada yang dicari
+  // Filter pencarian
   const filteredReports = reports.filter((report) => {
-    const query = searchQuery.toLowerCase();
-    const titleMatch = (report.title || '').toLowerCase().includes(query);
-    const catMatch = (report.category || '').toLowerCase().includes(query);
-    const ticketMatch = (report.ticketId || '').toLowerCase().includes(query);
-    return titleMatch || catMatch || ticketMatch;
-  });
+  const q = searchQuery.toLowerCase();
+  const matchSearch =
+    (report.title || '').toLowerCase().includes(q) ||
+    (report.category || '').toLowerCase().includes(q) ||
+    (report.ticketId || '').toLowerCase().includes(q);
+  const matchStatus =
+    statusFilter === 'Semua' || (report.status || '').toLowerCase() === statusFilter.toLowerCase();
+  return matchSearch && matchStatus;
+});
 
   // Hitung jumlah slide/halaman
   const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE) || 1;
@@ -24,6 +29,12 @@ export default function UserReportHistory({ reports, onSelectReport }) {
   // Ambil hanya 4 data laporan untuk slide saat ini
   const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
   const currentReports = filteredReports.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const resetFilter = () => {
+    setSearchQuery('');
+    setStatusFilter('Semua');
+    setCurrentPage(1);
+  };
 
   const getBadgeStyle = (status) => {
     switch ((status || '').toLowerCase()) {
@@ -64,6 +75,20 @@ export default function UserReportHistory({ reports, onSelectReport }) {
             />
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
           </div>
+
+          <div className="flex flex-wrap gap-2">
+  {['Semua', 'Diproses', 'Selesai', 'Ditolak'].map((s) => (
+    <button
+      key={s}
+      onClick={() => { setStatusFilter(s); setCurrentPage(1); }}
+      className={`px-4 py-1.5 rounded-pill text-xs font-bold border transition ${
+        statusFilter === s ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-gray-600 border-gray-300'
+      }`}
+    >
+      {s}
+    </button>
+  ))}
+</div>
 
           <span className="text-xs text-gray-500 font-semibold">
             Total Laporan: <strong className="text-brand-dark">{filteredReports.length}</strong>
@@ -114,12 +139,9 @@ export default function UserReportHistory({ reports, onSelectReport }) {
             ))}
           </div>
         ) : (
-          <div className="py-16 text-center text-gray-400 space-y-2">
-            <FileText className="w-12 h-12 mx-auto text-gray-300" />
-            <p className="font-semibold text-sm">Tidak ada laporan yang ditemukan.</p>
-          </div>
+          <EmptyState onReset={resetFilter} />
         )}
-
+        
       </div>
 
       {/* Navigasi Slide / Pagination di Bagian Bawah */}

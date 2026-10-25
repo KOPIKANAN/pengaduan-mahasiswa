@@ -12,6 +12,9 @@ import UserReportDetailModal from './components/UserReportDetailModal';
 import { INITIAL_USER } from './data/mockData';
 import { getReports, createReport, updateReport, deleteReport } from './services/reportApi';
 import { CheckCircle2, AlertCircle, Info, LogOut, Menu } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
+import ReportSkeleton from './components/ReportSkeleton';
+import EmptyState from './components/EmptyState';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -50,9 +53,10 @@ export default function App() {
   }, []);
 
   const triggerToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
+  if (type === 'error') toast.error(message);
+  else if (type === 'info') toast.info(message);
+  else toast.success(message);
+};
 
   const handleProtectedAction = (actionCallback) => {
     if (!currentUser) {
@@ -184,16 +188,22 @@ export default function App() {
 
   const activeUserReports = getFilteredReportsForUser();
 
+  const renderData = (content) =>
+    isLoading ? <ReportSkeleton /> :
+    loadError ? <ErrorState message={loadError} onRetry={loadReports} /> :
+    content;
+    
+
+  const homePage = (
+    <UserHome
+      user={currentUser || guestUser}
+      reports={activeUserReports}
+      goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans relative selection:bg-brand-teal selection:text-white">
-      {toast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center space-x-3 bg-gray-900/95 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-gray-700 animate-fade-in text-sm font-semibold max-w-sm">
-          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-green shrink-0" />}
-          {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-brand-red shrink-0" />}
-          {toast.type === 'info' && <Info className="w-5 h-5 text-brand-light shrink-0" />}
-          <span className="leading-snug">{toast.message}</span>
-        </div>
-      )}
 
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
@@ -273,6 +283,60 @@ export default function App() {
           />
 
           <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+            {currentTab === 'home' && (currentUser ? renderData(homePage) : homePage)}
+
+            {currentUser && role === 'mahasiswa' && currentTab === 'form' && (
+              <UserReportForm
+                onSubmitReport={handleAddReport}
+                onCancel={() => setCurrentTab('home')}
+              />
+            )}
+
+            {currentUser && role === 'mahasiswa' && currentTab === 'history' && renderData(
+              <UserReportHistory
+                reports={activeUserReports}
+                onSelectReport={(rep) => setUserModalReport(rep)}
+              />
+            )}
+
+            {currentUser && currentTab === 'profile' && (
+              <UserProfile
+                user={currentUser}
+                role={role}
+                onUpdateUser={(updated) => {
+                  // Sinkronkan nama baru ke data akun terdaftar agar tidak hilang saat login ulang
+                  const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
+                  const syncedUsers = users.map((u) =>
+                    u.email === currentUser.email ? { ...u, name: updated.name } : u
+                  );
+                  localStorage.setItem('silapor_users', JSON.stringify(syncedUsers));
+
+                  setCurrentUser(updated);
+                  localStorage.setItem('pengaduan_active_session', JSON.stringify(updated));
+                  triggerToast('Profil berhasil disimpan!');
+                }}
+                onSignOut={() => setShowLogoutConfirm(true)}
+              />
+            )}
+
+                        {currentUser && role === 'admin' && currentTab === 'admin-home' && renderData(
+              <AdminHome
+                reports={reports}
+                onSelectReport={(rep) => {
+                  setSelectedReport(rep);
+                  setCurrentTab('admin-detail');
+                }}
+              />
+            )}
+
+            {currentUser && role === 'admin' && currentTab === 'admin-detail' && selectedReport && (
+              <AdminReportDetail
+                report={selectedReport}
+                onBack={() => setCurrentTab('admin-home')}
+                onUpdateStatus={handleUpdateStatus}
+              />
+
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center p-10 text-gray-500 font-bold animate-pulse">
                 Memuat data dari MockAPI...
@@ -348,6 +412,7 @@ export default function App() {
                   />
                 )}
               </>
+
             )}
           </main>
         </div>
@@ -358,7 +423,6 @@ export default function App() {
           report={userModalReport}
           onClose={() => setUserModalReport(null)}
         />
-      )}
+            )}
     </div>
   );
-}
