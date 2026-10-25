@@ -11,9 +11,9 @@ Proyek ini dikerjakan oleh **Kelompok 9 - Divisi Web & UI/UX Developer** (Vinix 
 
 | Keterangan | Tautan |
 |---|---|
-| Live Web (Vercel) | [ISI: link Vercel] |
+| Live Web (Vercel) | https://pengaduan-mahasiswa-web.vercel.app/ |
 | Repositori GitHub | https://github.com/robby5431/pengaduan-mahasiswa |
-| Desain Figma (Modul 5) | https://www.figma.com/design/yDw5qop2pHOulbNWUyFsTs/ Desain-Website-Pelaporan-Kerusakan-Fasilitas-Kampus?nodeid=105-1265&p=f&t=TvbqGSfhxNo5jyS6-0 |
+| Desain Figma (Modul 5) | https://www.figma.com/design/yDw5qop2pHOulbNWUyFsTs/Desain-Website-Pelaporan-Kerusakan-Fasilitas-Kampus?nodeid=105-1265&p=f&t=TvbqGSfhxNo5jyS6-0 |
 
 ## Daftar Isi
 
