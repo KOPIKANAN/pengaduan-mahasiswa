@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { findUserByEmail, createUser, hashPassword } from '../services/userApi';
 
 export default function RegisterPage({ onRegister, goToLogin }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-      const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -19,20 +21,25 @@ export default function RegisterPage({ onRegister, goToLogin }) {
     if (!emailOk) return setError('Format email tidak valid.');
     if (password.trim().length < 6) return setError('Password minimal 6 karakter.');
 
-    const existingUsers = JSON.parse(localStorage.getItem('silapor_users')) || [];
-
-    const userExists = existingUsers.find((user) => user.email === cleanEmail);
-    if (userExists) {
-      setError('Email ini sudah terdaftar! Silakan gunakan email lain atau masuk.');
-      return;
+    setIsSubmitting(true);
+    try {
+      const existing = await findUserByEmail(cleanEmail);
+      if (existing) {
+        setError('Email ini sudah terdaftar! Silakan gunakan email lain atau masuk.');
+        return;
+      }
+      await createUser({
+        name: cleanName,
+        email: cleanEmail,
+        passwordHash: await hashPassword(password.trim()),
+      });
+      toast.success('Registrasi berhasil! Silakan masuk.');
+      goToLogin();
+    } catch {
+      setError('Gagal menghubungi server. Periksa koneksi lalu coba lagi.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const newUser = { name: cleanName, email: cleanEmail, password: password.trim() };
-    existingUsers.push(newUser);
-    localStorage.setItem('silapor_users', JSON.stringify(existingUsers));
-
-    toast.success('Registrasi berhasil! Silakan masuk.');
-    goToLogin();
   };
 
   return (

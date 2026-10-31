@@ -16,6 +16,7 @@ import { getReports, createReport, updateReport, deleteReport } from './services
 import { CheckCircle2, AlertCircle, Info, LogOut, Menu } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import ReportSkeleton from './components/ReportSkeleton';
+import { findUserByEmail, updateUser } from './services/userApi';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -313,12 +314,13 @@ export default function App() {
               <UserProfile
                 user={currentUser}
                 role={role}
-                onUpdateUser={(updated) => {
-                  const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
-                  const syncedUsers = users.map((u) =>
-                    u.email === currentUser.email ? { ...u, name: updated.name } : u
-                  );
-                  localStorage.setItem('silapor_users', JSON.stringify(syncedUsers));
+                onUpdateUser={async (updated) => {
+                  try {
+                   const found = await findUserByEmail(currentUser.email);
+                   if (found) await updateUser(found.id, { ...found, name: updated.name });
+                  } catch {
+                   triggerToast('Nama tersimpan di perangkat, tapi gagal disinkronkan ke server.', 'error');
+                  }
 
                   setCurrentUser(updated);
                   localStorage.setItem('pengaduan_active_session', JSON.stringify(updated));
