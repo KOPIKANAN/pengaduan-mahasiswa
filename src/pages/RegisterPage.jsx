@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function RegisterPage({ onRegister, goToLogin }) {
   const [name, setName] = useState('');
@@ -6,27 +7,32 @@ export default function RegisterPage({ onRegister, goToLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+      const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
 
-    // Ambil data users yang sudah pernah mendaftar sebelumnya dari localStorage
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
+
+    if (!cleanName) return setError('Nama lengkap wajib diisi.');
+    if (!emailOk) return setError('Format email tidak valid.');
+    if (password.trim().length < 6) return setError('Password minimal 6 karakter.');
+
     const existingUsers = JSON.parse(localStorage.getItem('silapor_users')) || [];
 
-    // Cek apakah email sudah terdaftar
-    const userExists = existingUsers.find((user) => user.email === email);
+    const userExists = existingUsers.find((user) => user.email === cleanEmail);
     if (userExists) {
       setError('Email ini sudah terdaftar! Silakan gunakan email lain atau masuk.');
       return;
     }
 
-    // Simpan user baru ke dalam array users
-    const newUser = { name, email, password };
+    const newUser = { name: cleanName, email: cleanEmail, password: password.trim() };
     existingUsers.push(newUser);
     localStorage.setItem('silapor_users', JSON.stringify(existingUsers));
 
-    alert('Registrasi berhasil! Silakan masuk.');
-    goToLogin(); // Pindah otomatis ke halaman login setelah sukses daftar
+    toast.success('Registrasi berhasil! Silakan masuk.');
+    goToLogin();
   };
 
   return (
@@ -62,7 +68,7 @@ export default function RegisterPage({ onRegister, goToLogin }) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nama Lengkap</label>
               <input
