@@ -1,27 +1,30 @@
 import React, { useState } from 'react';
+import { findUserByEmail, hashPassword } from '../services/userApi';
 
 export default function LoginPage({ onLogin, goToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
 
-    const cleanEmail = email.trim();
-    const cleanPassword = password.trim();
+    try {
+      const found = await findUserByEmail(email.trim());
+      const hash = await hashPassword(password.trim());
 
-    const existingUsers = JSON.parse(localStorage.getItem('silapor_users')) || [];
-
-    const foundUser = existingUsers.find(
-      (user) => user.email === cleanEmail && user.password === cleanPassword
-    );
-
-    if (foundUser) {
-      onLogin({ name: foundUser.name, email: foundUser.email });
-    } else {
-      setError('Email atau password salah, atau akun belum terdaftar!');
+      if (found && found.passwordHash === hash) {
+        onLogin({ name: found.name, email: found.email });
+      } else {
+        setError('Email atau password salah, atau akun belum terdaftar!');
+      }
+    } catch {
+      setError('Gagal menghubungi server. Periksa koneksi lalu coba lagi.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

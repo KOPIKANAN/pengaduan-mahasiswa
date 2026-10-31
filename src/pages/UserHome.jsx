@@ -1,10 +1,14 @@
 import React from 'react';
 import UserHomeSkeleton from '../components/UserHomeSkeleton';
+import ErrorState from '../components/ErrorState';
 
-export default function UserHome({ user, reports, goToForm, isLoading }) {
+export default function UserHome({ user, reports, goToForm, isLoading, loadError, onRetry }) {
   // Jika sedang loading, tampilkan skeleton khusus UserHome
   if (isLoading) {
     return <UserHomeSkeleton />;
+  }
+  if (loadError) {
+    return <ErrorState message={loadError} onRetry={onRetry} />;
   }
 
   // Cek apakah user sedang berada dalam mode Pengunjung / Guest

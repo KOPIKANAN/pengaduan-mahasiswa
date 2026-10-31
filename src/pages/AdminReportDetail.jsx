@@ -1,7 +1,9 @@
-import React from 'react';
-import { ArrowLeft, CheckCircle, XCircle, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
 
-export default function AdminReportDetail({ report, onBack, onUpdateStatus }) {
+export default function AdminReportDetail({ report, onBack, onUpdateStatus, onDelete }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   if (!report) return null;
 
   return (
@@ -135,6 +137,42 @@ export default function AdminReportDetail({ report, onBack, onUpdateStatus }) {
               </button>
             </div>
           </div>
+
+                    <div className="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-4">
+            <span className="text-xs font-bold text-gray-500">
+              Hapus laporan ini secara permanen:
+            </span>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 font-bold text-xs transition-all cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Hapus</span>
+            </button>
+          </div>
+
+          {confirmDelete && (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+                <h3 className="text-lg font-black text-gray-900">Hapus laporan ini?</h3>
+                <p className="text-xs text-gray-500 font-medium">Tindakan ini tidak dapat dibatalkan.</p>
+                <div className="flex items-center space-x-3 pt-2">
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-300 font-bold text-xs text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => onDelete(report.id)}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs cursor-pointer"
+                  >
+                    Ya, Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
 

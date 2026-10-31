@@ -16,7 +16,7 @@ import { getReports, createReport, updateReport, deleteReport } from './services
 import { CheckCircle2, AlertCircle, Info, LogOut, Menu } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import ReportSkeleton from './components/ReportSkeleton';
-import EmptyState from './components/EmptyState';
+import { findUserByEmail, updateUser } from './services/userApi';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -169,7 +169,8 @@ export default function App() {
     try {
       await deleteReport(reportId);
       setReports((prev) => prev.filter((r) => r.id !== reportId));
-      setCurrentTab('admin-home');
+      setSelectedReport(null);
+      setCurrentTab('admin-reports');
       triggerToast('Laporan berhasil dihapus.', 'info');
     } catch {
       triggerToast('Gagal menghapus laporan.', 'error');
@@ -196,20 +197,6 @@ export default function App() {
   };
 
   const activeUserReports = getFilteredReportsForUser();
-
-  const renderData = (content) =>
-    isLoading ? <ReportSkeleton /> :
-    loadError ? (
-      <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-3">
-        <p className="text-red-600 font-semibold text-sm">{loadError}</p>
-        <button
-          onClick={loadReports}
-          className="px-4 py-2 bg-brand-teal text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer"
-        >
-          Coba Lagi
-        </button>
-      </div>
-    ) : content;
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans relative selection:bg-brand-teal selection:text-white">
@@ -300,6 +287,8 @@ export default function App() {
                 reports={activeUserReports}
                 goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
                 isLoading={isLoading}
+                loadError={currentUser ? loadError : ''}
+                onRetry={loadReports}
               />
             )}
 
@@ -325,12 +314,13 @@ export default function App() {
               <UserProfile
                 user={currentUser}
                 role={role}
-                onUpdateUser={(updated) => {
-                  const users = JSON.parse(localStorage.getItem('silapor_users')) || [];
-                  const syncedUsers = users.map((u) =>
-                    u.email === currentUser.email ? { ...u, name: updated.name } : u
-                  );
-                  localStorage.setItem('silapor_users', JSON.stringify(syncedUsers));
+                onUpdateUser={async (updated) => {
+                  try {
+                   const found = await findUserByEmail(currentUser.email);
+                   if (found) await updateUser(found.id, { ...found, name: updated.name });
+                  } catch {
+                   triggerToast('Nama tersimpan di perangkat, tapi gagal disinkronkan ke server.', 'error');
+                  }
 
                   setCurrentUser(updated);
                   localStorage.setItem('pengaduan_active_session', JSON.stringify(updated));
@@ -346,6 +336,8 @@ export default function App() {
                 user={currentUser}
                 reports={reports}
                 isLoading={isLoading}
+                loadError={loadError}
+                onRetry={loadReports}
                 goToReports={() => setCurrentTab('admin-reports')}
               />
             )}
@@ -355,6 +347,8 @@ export default function App() {
               <AdminReportList
                 reports={reports}
                 isLoading={isLoading}
+                loadError={loadError}
+                onRetry={loadReports}
                 onSelectReport={(rep) => {
                   setSelectedReport(rep);
                   setCurrentTab('admin-detail');
@@ -368,6 +362,7 @@ export default function App() {
                 report={selectedReport}
                 onBack={() => setCurrentTab('admin-reports')}
                 onUpdateStatus={handleUpdateStatus}
+                onDelete={handleDeleteReport}
                 isLoading={isLoading}
               />
             )}
