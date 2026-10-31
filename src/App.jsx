@@ -169,7 +169,8 @@ export default function App() {
     try {
       await deleteReport(reportId);
       setReports((prev) => prev.filter((r) => r.id !== reportId));
-      setCurrentTab('admin-home');
+      setSelectedReport(null);
+      setCurrentTab('admin-reports');
       triggerToast('Laporan berhasil dihapus.', 'info');
     } catch {
       triggerToast('Gagal menghapus laporan.', 'error');
@@ -368,6 +369,7 @@ export default function App() {
                 report={selectedReport}
                 onBack={() => setCurrentTab('admin-reports')}
                 onUpdateStatus={handleUpdateStatus}
+                onDelete={handleDeleteReport}
                 isLoading={isLoading}
               />
             )}
