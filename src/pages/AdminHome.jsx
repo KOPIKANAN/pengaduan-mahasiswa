@@ -1,203 +1,110 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Search, FileText } from 'lucide-react';
-import EmptyState from '../components/EmptyState';
+// src/pages/AdminHome.jsx
+import React from 'react';
+import UserHomeSkeleton from '../components/UserHomeSkeleton';
 
-export default function AdminHome({ reports, onSelectReport }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('Semua');
-  const [searchQuery, setSearchQuery] = useState('');
+export default function AdminHome({ user, reports, isLoading }) {
+  // Langsung gunakan skeleton milik user yang sudah ada
+  if (isLoading) {
+    return <UserHomeSkeleton />;
+  }
 
-  // Maksimal 10 laporan per halaman
-  const ITEMS_PER_PAGE = 10;
+  const isGuest = !user || user.name === 'Pengunjung';
 
-  // Filter pencarian
-  const filteredReports = reports.filter((report) => {
-  const q = searchQuery.toLowerCase();
-  const matchSearch =
-    (report.title || '').toLowerCase().includes(q) ||
-    (report.category || '').toLowerCase().includes(q) ||
-    (report.ticketId || '').toLowerCase().includes(q);
-  const matchStatus =
-    statusFilter === 'Semua' || (report.status || '').toLowerCase() === statusFilter.toLowerCase();
-  return matchSearch && matchStatus;
-});
+  const countMasuk = isGuest ? 0 : reports.length;
+  const countDiproses = isGuest ? 0 : reports.filter(r => (r.status || '').toLowerCase() === 'diproses').length;
+  const countDitolak = isGuest ? 0 : reports.filter(r => (r.status || '').toLowerCase() === 'ditolak').length;
+  const countSelesai = isGuest ? 0 : reports.filter(r => (r.status || '').toLowerCase() === 'selesai').length;
 
-const resetFilter = () => { setSearchQuery(''); setStatusFilter('Semua'); setCurrentPage(1); };
-
-  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE) || 1;
-  const validPage = Math.min(currentPage, totalPages);
-
-  const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
-  const currentReports = filteredReports.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const resetFilter = () => {
-    setSearchQuery('');
-    setStatusFilter('Semua');
-    setCurrentPage(1);
-  };
-
-  const getStatusBadge = (report) => {
-    const status = (report.adminStatus || report.status || '').toUpperCase();
-    if (status.includes('SELESAI')) {
-      return (
-        <span className="inline-block px-2.5 sm:px-5 py-1 rounded-full text-[10px] sm:text-xs font-black bg-brand-green text-gray-900 shadow-sm whitespace-nowrap">
-          SELESAI
-        </span>
-      );
-    }
-    if (status.includes('TOLAK') || status.includes('DITOLAK')) {
-      return (
-        <span className="inline-block px-2.5 sm:px-5 py-1 rounded-full text-[10px] sm:text-xs font-black bg-brand-red text-white shadow-sm whitespace-nowrap">
-          DITOLAK
-        </span>
-      );
-    }
-    return (
-      <span className="inline-block px-2.5 sm:px-5 py-1 rounded-full text-[10px] sm:text-xs font-black bg-brand-yellow text-gray-900 shadow-sm whitespace-nowrap">
-        MENUNGGU
-      </span>
-    );
-  };
+  const padZero = (num) => String(num).padStart(2, '0');
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-4 sm:p-6 md:p-10 overflow-y-auto flex flex-col justify-between">
-      <div className="max-w-5xl mx-auto w-full space-y-5">
-        
-        {/* Title & Search Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-4">
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-            Daftar Laporan
-          </h1>
-
-          <div className="relative w-full sm:w-72">
-            <input
-              type="text"
-              placeholder="Cari ID tiket atau kategori..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-9 pr-4 py-2 bg-gray-100 text-gray-800 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-brand-teal placeholder:text-gray-400"
-            />
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-  {['Semua', 'Diproses', 'Selesai', 'Ditolak'].map((s) => (
-    <button
-      key={s}
-      onClick={() => { setStatusFilter(s); setCurrentPage(1); }}
-      className={`px-4 py-1.5 rounded-pill text-xs font-bold border transition ${
-        statusFilter === s ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-gray-600 border-gray-300'
-      }`}
-    >
-      {s}
-    </button>
-  ))}
-</div>
-
-        {/* Tabel Laporan Responsif Mobile (Dilengkapi overflow-x-auto & padding adaptif) */}
-        <div className="border border-brand-teal rounded-2xl overflow-x-auto shadow-sm bg-white">
-          <table className="w-full text-left border-collapse min-w-[500px] sm:min-w-full">
-            {/* Header Tabel */}
-            <thead>
-              <tr className="bg-brand-teal text-white text-[11px] sm:text-xs uppercase font-extrabold tracking-wider">
-                <th className="py-3 sm:py-4 px-2 sm:px-6 text-center w-10 sm:w-16">No</th>
-                <th className="py-3 sm:py-4 px-3 sm:px-6">ID TIKET</th>
-                <th className="py-3 sm:py-4 px-3 sm:px-6">KATEGORI LAPORAN</th>
-                <th className="py-3 sm:py-4 px-2 sm:px-6 text-center">STATUS</th>
-                <th className="py-3 sm:py-4 px-2 sm:px-6 text-center w-20 sm:w-28">AKSI</th>
-              </tr>
-            </thead>
-
-            {/* Isi Tabel */}
-            <tbody className="divide-y divide-gray-100 text-xs sm:text-sm font-bold text-gray-900 bg-white">
-              {currentReports.map((report, idx) => (
-                <tr key={report.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="py-3 sm:py-4 px-2 sm:px-6 text-center text-gray-700">
-                    {startIndex + idx + 1}
-                  </td>
-                  <td className="py-3 sm:py-4 px-3 sm:px-6 font-extrabold text-gray-900 tracking-wide whitespace-nowrap">
-                    {report.ticketId}
-                  </td>
-                  <td className="py-3 sm:py-4 px-3 sm:px-6 font-black uppercase text-gray-800">
-                    {report.category || report.title}
-                  </td>
-                  <td className="py-3 sm:py-4 px-2 sm:px-6 text-center">
-                    {getStatusBadge(report)}
-                  </td>
-                  <td className="py-3 sm:py-4 px-2 sm:px-6 text-center">
-                    <button
-                      onClick={() => onSelectReport(report)}
-                      className="font-black text-gray-900 hover:text-brand-dark tracking-wide uppercase text-xs hover:underline cursor-pointer whitespace-nowrap"
-                    >
-                      DETAIL
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {currentReports.length === 0 && (
-                <tr>
-                  <td colSpan={5}>
-                    <EmptyState onReset={resetFilter} />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Ringkasan Jumlah Baris */}
-        <div className="text-[11px] sm:text-xs text-gray-500 font-medium text-right">
-          Menampilkan {currentReports.length > 0 ? startIndex + 1 : 0} - {startIndex + currentReports.length} dari {filteredReports.length} laporan
-        </div>
-
+    <div className="flex-1 min-h-screen bg-gray-100 flex flex-col overflow-y-auto">
+      {/* Top Banner: University Building */}
+      <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-800">
+        <img
+          src="/images/university.png"
+          alt="University Campus"
+          className="w-full h-full object-cover object-center"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1562774053-701939374585?w=1600&auto=format&fit=crop&q=80';
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
       </div>
 
-      {/* Navigasi Pagination */}
-      {totalPages > 1 && (
-        <div className="max-w-5xl mx-auto w-full pt-6 pb-2 flex items-center justify-center space-x-2 sm:space-x-3">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={validPage === 1}
-            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Sebelumnya</span>
-          </button>
+      {/* Main Content Card overlapping the building */}
+      <div className="relative -mt-16 sm:-mt-20 max-w-6xl w-full mx-auto px-4 sm:px-8 pb-12 flex-1">
+        <div className="bg-white rounded-t-[40px] rounded-b-3xl shadow-xl p-6 sm:p-10 border border-gray-100">
+          
+          {/* Hero Greeting Section */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 py-4 sm:py-6">
+            {/* Illustration */}
+            <div className="md:w-5/12 flex justify-center">
+              <div className="relative w-80 h-72 sm:w-96 sm:h-80 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#e0f4f2] rounded-full filter blur-xl opacity-70 transform -translate-y-2"></div>
+                <img
+                  src="/images/hero_illustration.png"
+                  alt="Admin Sarpras"
+                  className="relative z-10 w-full h-full object-contain drop-shadow-md scale-110 sm:scale-125"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://illustrations.popertee.com/business-woman-with-megaphone.png';
+                  }}
+                />
+              </div>
+            </div>
 
-          <div className="flex items-center space-x-1.5 sm:space-x-2">
-            {Array.from({ length: totalPages }, (_, index) => {
-              const pageNum = index + 1;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-2xl text-xs font-black transition-all ${
-                    validPage === pageNum
-                      ? 'bg-brand-dark text-white shadow-md scale-105'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+            {/* Greeting */}
+            <div className="md:w-7/12 text-center md:text-left space-y-5">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight leading-loose">
+                Selamat Pagi<br />
+                <span className="text-gray-900 block mt-2">{user?.name || 'Admin Sarpras Kampus'}</span>
+              </h1>
+            </div>
           </div>
 
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={validPage === totalPages}
-            className="flex items-center space-x-1 px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            <span className="hidden sm:inline">Selanjutnya</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          {/* Stat Cards Grid */}
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-brand-light rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-all">
+              <h3 className="font-extrabold text-gray-900 text-sm sm:text-base mb-2">
+                Laporan Masuk
+              </h3>
+              <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
+                {padZero(countMasuk)}
+              </span>
+            </div>
+
+            <div className="bg-brand-light rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-all">
+              <h3 className="font-extrabold text-gray-900 text-sm sm:text-base mb-2">
+                Laporan Diproses
+              </h3>
+              <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
+                {padZero(countDiproses)}
+              </span>
+            </div>
+
+            <div className="bg-brand-light rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-all">
+              <h3 className="font-extrabold text-gray-900 text-sm sm:text-base mb-2">
+                Laporan Ditolak
+              </h3>
+              <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
+                {padZero(countDitolak)}
+              </span>
+            </div>
+
+            <div className="bg-brand-light rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-all">
+              <h3 className="font-extrabold text-gray-900 text-sm sm:text-base mb-2">
+                Laporan Selesai
+              </h3>
+              <span className="text-4xl sm:text-6xl font-black text-white tracking-wider">
+                {padZero(countSelesai)}
+              </span>
+            </div>
+          </div>
+
         </div>
-      )}
+      </div>
     </div>
   );
 }

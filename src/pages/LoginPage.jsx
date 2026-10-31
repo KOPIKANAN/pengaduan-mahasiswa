@@ -5,23 +5,22 @@ export default function LoginPage({ onLogin, goToRegister }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
 
-    // Ambil data users dari localStorage
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
     const existingUsers = JSON.parse(localStorage.getItem('silapor_users')) || [];
 
-    // Cari apakah ada user dengan email dan password yang cocok
     const foundUser = existingUsers.find(
-      (user) => user.email === email && user.password === password
+      (user) => user.email === cleanEmail && user.password === cleanPassword
     );
 
-        if (foundUser) {
-      // Jika cocok, kirim data user lengkap (termasuk nama) ke parent component
+    if (foundUser) {
       onLogin({ name: foundUser.name, email: foundUser.email });
     } else {
-      // Jika tidak ditemukan atau password salah
       setError('Email atau password salah, atau akun belum terdaftar!');
     }
   };
