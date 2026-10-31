@@ -3,10 +3,14 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import AdminReportListSkeleton from '../components/AdminReportListSkeleton';
+import ErrorState from '../components/ErrorState';
 
-export default function AdminReportList({ reports, onSelectReport, isLoading }) {
+export default function AdminReportList({ reports, onSelectReport, isLoading, loadError, onRetry }) {
   if (isLoading) {
     return <AdminReportListSkeleton rows={6} />;
+  }
+    if (loadError) {
+    return <ErrorState message={loadError} onRetry={onRetry} />;
   }
 
   const [currentPage, setCurrentPage] = useState(1);

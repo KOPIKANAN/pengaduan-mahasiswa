@@ -1,11 +1,15 @@
 // src/pages/AdminHome.jsx
 import React from 'react';
 import UserHomeSkeleton from '../components/UserHomeSkeleton';
+import ErrorState from '../components/ErrorState';
 
-export default function AdminHome({ user, reports, isLoading }) {
+export default function AdminHome({ user, reports, isLoading, loadError, onRetry }) {
   // Langsung gunakan skeleton milik user yang sudah ada
   if (isLoading) {
     return <UserHomeSkeleton />;
+  }
+  if (loadError) {
+    return <ErrorState message={loadError} onRetry={onRetry} />;
   }
 
   const isGuest = !user || user.name === 'Pengunjung';

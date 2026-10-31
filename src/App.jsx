@@ -16,7 +16,6 @@ import { getReports, createReport, updateReport, deleteReport } from './services
 import { CheckCircle2, AlertCircle, Info, LogOut, Menu } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import ReportSkeleton from './components/ReportSkeleton';
-import EmptyState from './components/EmptyState';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -198,20 +197,6 @@ export default function App() {
 
   const activeUserReports = getFilteredReportsForUser();
 
-  const renderData = (content) =>
-    isLoading ? <ReportSkeleton /> :
-    loadError ? (
-      <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-3">
-        <p className="text-red-600 font-semibold text-sm">{loadError}</p>
-        <button
-          onClick={loadReports}
-          className="px-4 py-2 bg-brand-teal text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer"
-        >
-          Coba Lagi
-        </button>
-      </div>
-    ) : content;
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans relative selection:bg-brand-teal selection:text-white">
       <Toaster position="top-right" richColors />
@@ -301,6 +286,8 @@ export default function App() {
                 reports={activeUserReports}
                 goToForm={() => handleProtectedAction(() => setCurrentTab('form'))}
                 isLoading={isLoading}
+                loadError={currentUser ? loadError : ''}
+                onRetry={loadReports}
               />
             )}
 
@@ -347,6 +334,8 @@ export default function App() {
                 user={currentUser}
                 reports={reports}
                 isLoading={isLoading}
+                loadError={loadError}
+                onRetry={loadReports}
                 goToReports={() => setCurrentTab('admin-reports')}
               />
             )}
@@ -356,6 +345,8 @@ export default function App() {
               <AdminReportList
                 reports={reports}
                 isLoading={isLoading}
+                loadError={loadError}
+                onRetry={loadReports}
                 onSelectReport={(rep) => {
                   setSelectedReport(rep);
                   setCurrentTab('admin-detail');
