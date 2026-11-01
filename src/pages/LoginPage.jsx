@@ -1,3 +1,4 @@
+// src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { findUserByEmail, hashPassword } from '../services/userApi';
 
@@ -13,7 +14,24 @@ export default function LoginPage({ onLogin, goToRegister }) {
     setIsSubmitting(true);
 
     try {
-      const found = await findUserByEmail(email.trim());
+      const trimmedEmail = email.trim().toLowerCase();
+      const ADMIN_EMAIL_KHUSUS = 'admin@univ.ac.id';
+      const ADMIN_PASSWORD_KHUSUS = 'iniadmin#123';
+
+      // 1. CEK JIKA INI AKUN ADMIN KHUSUS
+      if (trimmedEmail === ADMIN_EMAIL_KHUSUS.toLowerCase()) {
+        if (password.trim() === ADMIN_PASSWORD_KHUSUS) {
+          onLogin({ name: 'Admin Sarpras Kampus', email: trimmedEmail });
+          return;
+        } else {
+          setError('Password Admin salah!');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // 2. JIKA BUKAN ADMIN, LANJUTKAN CEK KE DATABASE MAHASISWA
+      const found = await findUserByEmail(trimmedEmail);
       const hash = await hashPassword(password.trim());
 
       if (found && found.passwordHash === hash) {
@@ -89,9 +107,10 @@ export default function LoginPage({ onLogin, goToRegister }) {
             <div className="pt-2 flex flex-col items-center">
               <button
                 type="submit"
-                className="w-full max-w-[240px] py-2.5 px-8 rounded-xl border-2 border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white font-bold text-base transition-all duration-200 shadow-sm"
+                disabled={isSubmitting}
+                className="w-full max-w-[240px] py-2.5 px-8 rounded-xl border-2 border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white font-bold text-base transition-all duration-200 shadow-sm disabled:opacity-50 cursor-pointer"
               >
-                Masuk
+                {isSubmitting ? 'Memproses...' : 'Masuk'}
               </button>
 
               <p className="mt-4 text-xs text-gray-500 font-medium">
@@ -99,7 +118,7 @@ export default function LoginPage({ onLogin, goToRegister }) {
                 <button
                   type="button"
                   onClick={goToRegister}
-                  className="text-brand-dark font-bold hover:underline"
+                  className="text-brand-dark font-bold hover:underline cursor-pointer"
                 >
                   Daftar
                 </button>

@@ -76,11 +76,13 @@ export default function App() {
     }
   };
 
-  const handleLogin = (credentials) => {
+const handleLogin = (credentials) => {
     const { email, name } = credentials;
     let loggedUser;
 
-    if (email.toLowerCase().includes('admin')) {
+    const ADMIN_EMAIL_KHUSUS = 'admin@univ.ac.id';
+
+    if (email.toLowerCase() === ADMIN_EMAIL_KHUSUS.toLowerCase()) {
       loggedUser = {
         name: 'Admin Sarpras Kampus',
         email: email,
@@ -107,7 +109,15 @@ export default function App() {
     triggerToast(`Selamat datang kembali, ${loggedUser.name}!`);
   };
 
-  const handleRegister = (data) => {
+const handleRegister = (data) => {
+    const ADMIN_EMAIL_KHUSUS = 'admin@univ.ac.id';
+
+    // Cegah pendaftaran jika menggunakan email khusus admin
+    if (data.email.toLowerCase() === ADMIN_EMAIL_KHUSUS.toLowerCase()) {
+      triggerToast('Email ini dikhususkan sebagai Administrator.', 'error');
+      return;
+    }
+
     const newUser = {
       name: data.name || 'Mahasiswa Baru',
       email: data.email,
