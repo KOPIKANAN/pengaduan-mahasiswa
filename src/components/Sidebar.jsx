@@ -67,7 +67,7 @@ export default function Sidebar({ currentTab, setTab, role, user, isOpenMobile, 
                 >
                   <div className="flex items-center space-x-3">
                     <FileText className={`w-5 h-5 ${currentTab === 'form' ? 'text-brand-dark' : 'text-white'}`} />
-                    <span>Form Pelaporan</span>
+                    <span>Lapor Sekarang!</span>
                   </div>
                   <ChevronRight className={`w-4 h-4 ${currentTab === 'form' ? 'text-brand-dark' : 'text-white/80'}`} />
                 </button>
