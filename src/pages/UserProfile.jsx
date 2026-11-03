@@ -1,9 +1,10 @@
+// src/pages/UserProfile.jsx
 import React, { useState, useRef } from 'react';
-import { LogOut, Eye, EyeOff, Check, Camera } from 'lucide-react';
+import { LogOut, Eye, EyeOff, Check, Camera, Lock } from 'lucide-react';
 
 export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
   const [name, setName] = useState(user?.name || 'Dimas Mahardika');
-  const [email, setEmail] = useState(user?.email || 'dimasmahardika@mhs.unjaya.ac.id');
+  const [email] = useState(user?.email || 'dimasmahardika@mhs.unjaya.ac.id'); // Email dibuat tetap tanpa fungsi setEmail agar tidak bisa diubah
   const [password, setPassword] = useState('password123');
   const [avatar, setAvatar] = useState(user?.avatar || '/images/avatar.png');
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +17,7 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatar(reader.result); // Mengubah foto avatar seketika dengan foto yang dipilih
+        setAvatar(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -27,8 +28,8 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
     const updated = {
       ...user,
       name,
-      email,
-      avatar, // Menyimpan foto profil baru
+      email, // Email tetap disertakan sesuai data asli
+      avatar,
     };
     onUpdateUser(updated);
     setSavedSuccess(true);
@@ -41,7 +42,7 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
       <div className="flex justify-end pb-4">
         <button
           onClick={onSignOut}
-          className="flex items-center space-x-2 bg-brand-red hover:bg-red-700 active:scale-95 text-white font-bold text-sm px-6 py-2.5 rounded-2xl shadow-sm transition-all duration-200"
+          className="flex items-center space-x-2 bg-brand-red hover:bg-red-700 active:scale-95 text-white font-bold text-sm px-6 py-2.5 rounded-2xl shadow-sm transition-all duration-200 cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
@@ -54,7 +55,7 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
       {/* Profile Form Card */}
       <div className="max-w-xl w-full mx-auto flex flex-col items-center">
         
-        {/* Avatar Section dengan Fitur Ganti Foto dari Galeri/File */}
+        {/* Avatar Section */}
         <div className="relative mb-3 group">
           <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-gray-300 shadow-md bg-gray-50">
             <img
@@ -68,7 +69,6 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
             />
           </div>
 
-          {/* Tombol Kamera untuk Memilih Foto dari File Laptop */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -78,7 +78,6 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
             <Camera className="w-4 h-4" />
           </button>
 
-          {/* Input File Tersembunyi */}
           <input
             ref={fileInputRef}
             type="file"
@@ -100,7 +99,7 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
           {role === 'admin' ? 'Petugas Admin Kampus' : 'Mahasiswa'}
         </p>
 
-        {/* Form Fields Sesuai Desain Figma */}
+        {/* Form Fields */}
         <form onSubmit={handleSubmit} className="w-full space-y-5">
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -116,14 +115,19 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Email
+              Email <span className="text-gray-400 font-normal">(Tidak dapat diubah)</span>
             </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-white text-gray-800 rounded-xl border border-gray-400 focus:border-brand-teal focus:ring-1 focus:ring-brand-teal outline-none text-sm font-medium transition-all"
-            />
+            <div className="relative">
+              <input
+                type="email"
+                value={email}
+                disabled
+                className="w-full px-4 py-3 pr-11 bg-gray-100 text-gray-500 rounded-xl border border-gray-300 outline-none text-sm font-medium cursor-not-allowed select-none"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 pointer-events-none" title="Email dikunci">
+                <Lock className="w-4 h-4" />
+              </div>
+            </div>
           </div>
 
           <div>
@@ -140,7 +144,7 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-800"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-800 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -154,11 +158,11 @@ export default function UserProfile({ user, role, onUpdateUser, onSignOut }) {
             </div>
           )}
 
-          {/* Centered CTA Button Sesuai Desain Figma */}
+          {/* Centered CTA Button */}
           <div className="pt-4 flex justify-center">
             <button
               type="submit"
-              className="bg-brand-dark hover:bg-[#0b5953] active:scale-95 text-white font-extrabold text-base px-10 py-3.5 rounded-2xl shadow-md transition-all duration-200"
+              className="bg-brand-dark hover:bg-[#0b5953] active:scale-95 text-white font-extrabold text-base px-10 py-3.5 rounded-2xl shadow-md transition-all duration-200 cursor-pointer"
             >
               Simpan Perubahan
             </button>
